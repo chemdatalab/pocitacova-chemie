@@ -1105,10 +1105,25 @@ img {
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(6px);
   color: #ffffff;
-  padding: 0.35rem 0.85rem;
+  padding: 0.4rem 0.95rem;
   border-radius: var(--radius-full);
-  font-size: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.86rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+a.chapter-pill:hover {
+  background: rgba(0, 180, 216, 0.35);
+  border-color: var(--up-cyan);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 180, 216, 0.35);
 }
 
 /* Sidebar & Info box (Inspirace bioinformatikou) */
