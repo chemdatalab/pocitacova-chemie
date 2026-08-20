@@ -117,7 +117,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 5. Water & Grotthuss Proton Transfer Simulation (H2O, H3O+, OH-)
+  // 5. Grotthuss Explainer Popover Interactions
+  const grotthussToggle = document.getElementById('grotthuss-toggle');
+  const grotthussPopover = document.getElementById('grotthuss-popover');
+  const grotthussClose = document.getElementById('grotthuss-close');
+
+  if (grotthussToggle && grotthussPopover) {
+    grotthussToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      grotthussPopover.classList.toggle('active');
+    });
+
+    if (grotthussClose) {
+      grotthussClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        grotthussPopover.classList.remove('active');
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!grotthussPopover.contains(e.target) && e.target !== grotthussToggle) {
+        grotthussPopover.classList.remove('active');
+      }
+    });
+  }
+
+  // 6. Water & Grotthuss Proton Transfer Simulation (H2O, H3O+, OH-)
   initWaterProtonTransferCanvas();
 });
 
