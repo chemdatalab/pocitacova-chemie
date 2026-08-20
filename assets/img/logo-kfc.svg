@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 70" width="100%" height="100%">
+  <defs>
+    <linearGradient id="upBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#003566"/>
+      <stop offset="100%" stop-color="#005691"/>
+    </linearGradient>
+    <linearGradient id="cyanAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#0077b6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- UP Crest / Emblem Graphic -->
+  <g transform="translate(10, 5)">
+    <!-- Hexagonal / Orbital Badge -->
+    <polygon points="28,2 52,16 52,44 28,58 4,44 4,16" fill="url(#upBlueGrad)" stroke="#00b4d8" stroke-width="2" stroke-linejoin="round"/>
+    
+    <!-- Stylized Atomic/Molecular Orbital & UP Monogram -->
+    <ellipse cx="28" cy="30" rx="18" ry="7" fill="none" stroke="#ffffff" stroke-width="1.8" transform="rotate(-30, 28, 30)" opacity="0.85"/>
+    <ellipse cx="28" cy="30" rx="18" ry="7" fill="none" stroke="#00b4d8" stroke-width="1.8" transform="rotate(30, 28, 30)" opacity="0.85"/>
+    <circle cx="28" cy="30" r="4.5" fill="#ffffff"/>
+    
+    <text x="28" y="34" font-family="'Montserrat', 'Open Sans', 'Segoe UI', sans-serif" font-weight="900" font-size="10" fill="#003566" text-anchor="middle">UP</text>
+  </g>
+
+  <!-- Typography -->
+  <!-- Main Title -->
+  <text x="75" y="26" font-family="'Montserrat', 'Open Sans', 'Segoe UI', -apple-system, sans-serif" font-size="17" font-weight="800" fill="#003566" letter-spacing="-0.2px">
+    KATEDRA FYZIKÁLNÍ CHEMIE
+  </text>
+  
+  <!-- Subtitles -->
+  <text x="75" y="43" font-family="'Open Sans', 'Segoe UI', -apple-system, sans-serif" font-size="12" font-weight="600" fill="#0077b6" letter-spacing="0.2px">
+    Přírodovědecká fakulta • Univerzita Palackého v Olomouci
+  </text>
+  
+  <text x="75" y="58" font-family="'Open Sans', 'Segoe UI', -apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#64748b" letter-spacing="0.5px">
+    STUDIJNÍ PROGRAM POČÍTAČOVÁ CHEMIE
+  </text>
+
+  <!-- Vertical separator / accent -->
+  <line x1="66" y1="10" x2="66" y2="60" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,21 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.uv/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Intermediate build and parsing artifacts
+extracted_assets/
+extracted_accreditation_text.txt
+extracted_ucebnice_clean.txt
+extracted_ucebnice_sample.txt
+full_ucebnice_parsed.txt

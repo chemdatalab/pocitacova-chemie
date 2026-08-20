@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Počítačová chemie | Přírodovědecká fakulta Univerzity Palackého v Olomouci</title>
+  <meta name="description" content="Studijní program Počítačová chemie na PřF UPOL. Chemie bez baněk, molekulové modelování, kvantová chemie, AI a superpočítače.">
+  <meta name="keywords" content="Počítačová chemie, UPOL, PřF, Katedra fyzikální chemie, Olomouc, molekulové modelování, bioinformatika, kvantová chemie, AlphaFold">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo-kfc.svg">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/img/logo-kfc.svg" alt="Katedra fyzikální chemie PřF UPOL" class="nav-logo">
+      </a>
+
+      <nav>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#uvod" class="nav-link active">O programu</a></li>
+          <li><a href="#studium" class="nav-link">Studijní plány</a></li>
+          <li><a href="#uplatneni" class="nav-link">Uplatnění</a></li>
+          <li><a href="#tym" class="nav-link">Vyučující</a></li>
+          <li><a href="ucebnice.html" class="nav-link" style="color: var(--up-cyan); font-weight: 700;">🧪 Interaktivní učebnice</a></li>
+          <li><a href="#kontakt" class="nav-link">Kontakt</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank" class="theme-toggle" title="GitHub repozitář (chemdatalab/pocitacova-chemie)" aria-label="GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <button id="theme-toggle" class="theme-toggle" title="Přepnout motiv">🌙</button>
+        <a href="https://prihlaska.upol.cz" target="_blank" class="btn btn-primary btn-sm">Podat přihlášku</a>
+        <button id="mobile-toggle" class="mobile-toggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="uvod">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span>🎓</span> Bakalářský studijní program PřF UP v Olomouci
+        </div>
+        <h1 class="hero-title">
+          <span class="gradient-text">Počítačová chemie</span><br>
+          Chemie bez baněk.
+        </h1>
+        <p class="hero-lead">
+          Objevuj zákonitosti molekulárního světa, navrhuj nová léčiva a moderní materiály pomocí superpočítačů a umělé inteligence na <strong>Přírodovědecké fakultě UP v Olomouci</strong>.
+        </p>
+        <div class="hero-actions">
+          <a href="https://prihlaska.upol.cz" target="_blank" class="btn btn-primary btn-lg">
+            🚀 Podat přihlášku ke studiu
+          </a>
+          <a href="ucebnice.html" class="btn btn-secondary btn-lg">
+            📖 Interaktivní učebnice & cvičení
+          </a>
+          <a href="assets/docs/letak-pocitacova-chemie-upol.pdf" download class="btn btn-outline btn-lg">
+            📄 Stáhnout leták (PDF)
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <h3>100 %</h3>
+            <p>Uplatnění absolventů ve výzkumu i praxi</p>
+          </div>
+          <div class="stat-item">
+            <h3>ELIXIR CZ</h3>
+            <p>Člen evropské výzkumné infrastruktury</p>
+          </div>
+          <div class="stat-item">
+            <h3>1:1</h3>
+            <p>Individuální přístup a práce v týmech</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Visual Card (Interactive Canvas Animation) -->
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="hero-card-header">
+            <div>
+              <h4 style="font-size: 1.05rem; margin-bottom: 0.15rem;">Simulace molekulárního světa</h4>
+              <p style="font-size: 0.8rem; color: var(--text-subtle); margin-bottom: 0;">Katedra fyzikální chemie UPOL</p>
+            </div>
+            <span class="chapter-pill" style="background: rgba(0, 180, 216, 0.2); color: var(--up-cyan); border-color: rgba(0, 180, 216, 0.4);">Živá simulace</span>
+          </div>
+          <div class="hero-canvas-wrap">
+            <canvas id="hero-canvas"></canvas>
+            <div class="hero-canvas-overlay">
+              <span>Molekulová dynamika & Kvantová chemie</span>
+              <span style="color: var(--up-cyan);">● V reálném čase</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What is Computational Chemistry? (3 Pillars) -->
+  <section class="section section-alt" id="co-je-to">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Mezioborové studium</span>
+        <h2 class="section-title">Co je počítačová chemie?</h2>
+        <p class="section-subtitle">
+          Fascinující spojení přírodních věd a moderních technologií. Nemusíš trávit hodiny v laboratoři s pipetou – tvou laboratoří je špičkový počítač a výkonné klastry.
+        </p>
+      </div>
+
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon">🧬</div>
+          <h3>1. Chemie & Molekuly</h3>
+          <p>
+            Pochopení chemické vazby, reaktivity, struktury DNA, bílkovin i nanomateriálů. Zkoumáme, jak atomy tvoří svět kolem nás.
+          </p>
+          <div class="pillar-tags">
+            <span class="pillar-tag">Kvantová chemie</span>
+            <span class="pillar-tag">Molekulové modelování</span>
+            <span class="pillar-tag">Fyzikální chemie</span>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon">💻</div>
+          <h3>2. Informatika & AI</h3>
+          <p>
+            Programování v Pythonu, práce na Linuxu, analýza velkých dat, skládání proteinů pomocí AI (AlphaFold) a návrh algoritmů pro chemii.
+          </p>
+          <div class="pillar-tags">
+            <span class="pillar-tag">Python & Linux</span>
+            <span class="pillar-tag">Machine Learning</span>
+            <span class="pillar-tag">Chemoinformatika</span>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon">📐</div>
+          <h3>3. Fyzika & Matematika</h3>
+          <p>
+            Využití Newtonových zákonů a kvantové mechaniky k přesnému popisu pohybu elektronů a atomů v čase a prostoru.
+          </p>
+          <div class="pillar-tags">
+            <span class="pillar-tag">Molekulová dynamika</span>
+            <span class="pillar-tag">Termodynamika</span>
+            <span class="pillar-tag">Statistická fyzika</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Why Study at UPOL Section -->
+      <div style="margin-top: 4.5rem;">
+        <div class="section-header" style="margin-bottom: 2.5rem;">
+          <span class="section-tag">Proč Olomouc?</span>
+          <h2 class="section-title">Proč studovat Počítačovou chemii na PřF UP?</h2>
+        </div>
+
+        <div class="reasons-grid">
+          <div class="reason-card">
+            <div class="reason-icon-wrap">🌐</div>
+            <div>
+              <h4 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Infrastruktura ELIXIR CZ</h4>
+              <p style="margin-bottom: 0; font-size: 0.92rem;">
+                Jsme součástí národního uzlu evropské výzkumné infrastruktury <strong>ELIXIR CZ</strong> pro bioinformatiku, datové zdroje a výpočetní biologii.
+              </p>
+            </div>
+          </div>
+
+          <div class="reason-card">
+            <div class="reason-icon-wrap">⚡</div>
+            <div>
+              <h4 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Špičkové výpočetní zázemí</h4>
+              <p style="margin-bottom: 0; font-size: 0.92rem;">
+                Budeš počítat na dedikovaných fakultních GPU klastrech a serverech optimalizovaných pro molekulovou dynamiku, kvantovou chemii a AI.
+              </p>
+            </div>
+          </div>
+
+          <div class="reason-card">
+            <div class="reason-icon-wrap">🤝</div>
+            <div>
+              <h4 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Přátelský a individuální přístup</h4>
+              <p style="margin-bottom: 0; font-size: 0.92rem;">
+                Nejsme anonymní velkovýrobna studentů. Už od prvního ročníku se můžeš zapojit do reálných vědeckých projektů s osobním mentorem.
+              </p>
+            </div>
+          </div>
+
+          <div class="reason-card">
+            <div class="reason-icon-wrap">🏛️</div>
+            <div>
+              <h4 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Moderní kampus Envelopa</h4>
+              <p style="margin-bottom: 0; font-size: 0.92rem;">
+                Špičkově vybavená moderní budova Přírodovědecké fakulty s výhledem na historické centrum nejkrásnějšího studentského města v ČR.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Study Plans / Curriculum Section -->
+  <section class="section" id="studium">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Koncepce studia</span>
+        <h2 class="section-title">Studijní plány a předměty</h2>
+        <p class="section-subtitle">
+          Jasná a logická struktura od základů přírodních věd a programování až po pokročilé simulace na klastrech.
+        </p>
+      </div>
+
+      <!-- Tab Buttons for Bc. and Mgr. -->
+      <div class="program-tabs">
+        <button class="tab-btn active" data-tab="bc-tab">
+          🎓 Bakalářské studium (Bc. Počítačová chemie, 3 roky)
+        </button>
+        <button class="tab-btn" data-tab="mgr-tab">
+          🔬 Navazující magisterské (Mgr. Fyzikální chemie, 2 roky)
+        </button>
+      </div>
+
+      <!-- Bachelor Content (Bc. Počítačová chemie) -->
+      <div class="tab-content active" id="bc-tab">
+        <div class="curriculum-grid">
+          <!-- 1. Year -->
+          <div class="year-card">
+            <div class="year-card-header">
+              <h3>1. Ročník (Základy)</h3>
+              <span>Chemie, matematika a základy IT</span>
+            </div>
+            <ul class="courses-list">
+              <li class="course-item">
+                <span>Struktura atomů a molekul</span>
+                <span class="course-code">KFC/SAM</span>
+              </li>
+              <li class="course-item">
+                <span>Základy anorganické chemie 1 & 2</span>
+                <span class="course-code">AFC/ACH1</span>
+              </li>
+              <li class="course-item">
+                <span>Seminář z matematiky & Diskrétní struktury</span>
+                <span class="course-code">KMI/UDS</span>
+              </li>
+              <li class="course-item">
+                <span>Fyzikální chemie 1 & Chemická struktura</span>
+                <span class="course-code">KFC/FC1</span>
+              </li>
+              <li class="course-item">
+                <span>CHD Chemické databáze</span>
+                <span class="course-code">KFC/CHD</span>
+              </li>
+              <li class="course-item">
+                <span>Programování pro chemiky / Python</span>
+                <span class="course-code">KFC/PCH</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 2. Year -->
+          <div class="year-card">
+            <div class="year-card-header">
+              <h3>2. Ročník (Modelování & IT)</h3>
+              <span>Molekulové modelování a algoritmizace</span>
+            </div>
+            <ul class="courses-list">
+              <li class="course-item">
+                <span>Algoritmizace & Programování pro IT</span>
+                <span class="course-code">KMI/AL1</span>
+              </li>
+              <li class="course-item">
+                <span>MOM1 & MOM2 Molekulové modelování</span>
+                <span class="course-code">KFC/MOM1</span>
+              </li>
+              <li class="course-item">
+                <span>Fyzikální chemie 2 (Termodynamika, Kinetika)</span>
+                <span class="course-code">KFC/FC2</span>
+              </li>
+              <li class="course-item">
+                <span>Zpracování experimentálních dat</span>
+                <span class="course-code">KFC/ZED</span>
+              </li>
+              <li class="course-item">
+                <span>CHIN Chemická informatika</span>
+                <span class="course-code">KFC/CHIN</span>
+              </li>
+              <li class="course-item">
+                <span>Analytická chemie 1 & 2</span>
+                <span class="course-code">ACH/AC1</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 3. Year -->
+          <div class="year-card">
+            <div class="year-card-header">
+              <h3>3. Ročník (Specializace & AI)</h3>
+              <span>Racionální návrh léčiv, AI a bakalářská práce</span>
+            </div>
+            <ul class="courses-list">
+              <li class="course-item">
+                <span>Drug design – racionální návrh léčiv</span>
+                <span class="course-code">KFC/DD</span>
+              </li>
+              <li class="course-item">
+                <span>MCHR Modelování chemických reakcí</span>
+                <span class="course-code">KFC/MCHR</span>
+              </li>
+              <li class="course-item">
+                <span>SUCH Úvod do strojového učení v chemii</span>
+                <span class="course-code">KFC/SUCH</span>
+              </li>
+              <li class="course-item">
+                <span>Základy biochemie</span>
+                <span class="course-code">KBC/BCH</span>
+              </li>
+              <li class="course-item">
+                <span>Modelování materiálů a nanomateriálů</span>
+                <span class="course-code">KFC/MMN</span>
+              </li>
+              <li class="course-item">
+                <span>Bakalářská práce 1 & 2 (vlastní výzkumný projekt)</span>
+                <span class="course-code">KFC/BP1</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Content (Mgr. Fyzikální chemie se zaměřením na výpočetní chemii) -->
+      <div class="tab-content" id="mgr-tab">
+        <div class="mgr-highlight">
+          <div class="mgr-highlight-header">
+            <span class="mgr-badge">Navazující magisterské studium</span>
+            <h3 style="font-size: 1.4rem; margin-bottom: 0;">Studijní program Fyzikální chemie (PřF UPOL)</h3>
+          </div>
+          <p style="font-size: 1.02rem; margin-bottom: 1.5rem;">
+            Přímo navazující dvouleté magisterské studium programu <strong>Fyzikální chemie</strong> nabízí specializovaný směr zaměřený na pokročilé metody počítačové chemie, molekulového modelování a výpočetního materiálového výzkumu.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+            <div style="background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <h4 style="font-size: 1.05rem; color: var(--up-blue-light); margin-bottom: 0.5rem;">Biomolekulární modelování</h4>
+              <p style="font-size: 0.88rem; margin-bottom: 0;">Simulace DNA, RNA, transportních kanálů v membránách a hybridní metody QM/MM.</p>
+            </div>
+            <div style="background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <h4 style="font-size: 1.05rem; color: var(--up-blue-light); margin-bottom: 0.5rem;">Materiály & Nanotechnologie</h4>
+              <p style="font-size: 0.88rem; margin-bottom: 0;">Kvantové výpočty 2D materiálů (grafen, MOFy), fotovoltaika a katalyzátory pro zelenou energii.</p>
+            </div>
+            <div style="background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <h4 style="font-size: 1.05rem; color: var(--up-blue-light); margin-bottom: 0.5rem;">Racionální návrh léčiv (CADD)</h4>
+              <p style="font-size: 0.88rem; margin-bottom: 0;">Virtuální screening milionů sloučenin, molekulární dokování a predikce ADMET vlastností.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Career Opportunities ("...a co potom?") -->
+  <section class="section section-alt" id="uplatneni">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Kariéra & Uplatnění</span>
+        <h2 class="section-title">...a co potom? Kde najdeš uplatnění?</h2>
+        <p class="section-subtitle">
+          Absolventi počítačové chemie jsou mimořádně žádaní díky unikátní kombinaci přírodovědného myšlení a špičkových IT/programátorských dovedností.
+        </p>
+      </div>
+
+      <div class="career-grid">
+        <div class="career-card">
+          <div class="career-icon">💊</div>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Farmacie & Biotechnologie</h3>
+          <p style="font-size: 0.88rem;">
+            Vývoj a optimalizace nových léčiv, virtuální screening a modelování interakcí s receptory ve farmaceutických firmách (Zentiva, Roche, Oncodata).
+          </p>
+        </div>
+
+        <div class="career-card">
+          <div class="career-icon">📊</div>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Data Science & IT</h3>
+          <p style="font-size: 0.88rem;">
+            Algoritmizace, analýza velkých dat, strojové učení a vývoj vědeckého softwaru pro technologické a analytické firmy.
+          </p>
+        </div>
+
+        <div class="career-card">
+          <div class="career-icon">🔋</div>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Materiálový výzkum</h3>
+          <p style="font-size: 0.88rem;">
+            Návrh materiálů pro baterie nové generace, solární články, senzory a nanotechnologie v průmyslovém i aplikovaném výzkumu.
+          </p>
+        </div>
+
+        <div class="career-card">
+          <div class="career-icon">🎓</div>
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Akademie & Ph.D.</h3>
+          <p style="font-size: 0.88rem;">
+            Pokračování v doktorském studiu na PřF UP, ÚOCHB AV ČR nebo na předních světových univerzitách v Evropě a USA.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instructors / Faculty Team Medallions -->
+  <section class="section" id="tym">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Náš tým</span>
+        <h2 class="section-title">Vyučující a vědečtí mentoři</h2>
+        <p class="section-subtitle">
+          Učit tě budou špičkoví vědci s bohatými mezinárodními zkušenostmi a granty.
+        </p>
+      </div>
+
+      <div class="team-grid">
+        <!-- Mgr. Marie Zgarbová -->
+        <div class="team-card">
+          <div class="team-card-top">
+            <div class="team-avatar">MZ</div>
+            <div class="team-info">
+              <h4>Mgr. Marie Zgarbová, Ph.D.</h4>
+              <span class="role">Garantka programu & Molekulové modelování</span>
+            </div>
+          </div>
+          <div class="team-card-body">
+            <p>
+              Specialistka na molekulové modelování a počítačovou dynamiku biomolekul (DNA a RNA). Vyučuje Molekulové modelování 2 (MOM2), Chemický software, Jadernou chemii a vede bakalářské práce.
+            </p>
+            <span class="team-research-tag">Garantka programu</span>
+            <span class="team-research-tag">Molekulové modelování</span>
+            <span class="team-research-tag">DNA & RNA dynamika</span>
+          </div>
+        </div>
+
+        <!-- prof. Karel Berka -->
+        <div class="team-card">
+          <div class="team-card-top">
+            <div class="team-avatar">KB</div>
+            <div class="team-info">
+              <h4>prof. RNDr. Karel Berka, Ph.D.</h4>
+              <span class="role">Profesor & Bioinformatik (ELIXIR CZ)</span>
+            </div>
+          </div>
+          <div class="team-card-body">
+            <p>
+              Specialista na výpočetní bioinformatiku, membránové transporty, drug design a vývoj nástrojů v rámci infrastruktury ELIXIR CZ (MOLE, ChannelsDB, 3D Orbital Simulator). Vyučuje Fyzikální chemii 1, Strukturu atomů a molekul a Racionální návrh léčiv.
+            </p>
+            <span class="team-research-tag">ELIXIR CZ</span>
+            <span class="team-research-tag">Drug Design</span>
+            <span class="team-research-tag">Bioinformatika</span>
+            <span class="team-research-tag">Simulátory</span>
+          </div>
+        </div>
+
+        <!-- doc. Petr Jurečka -->
+        <div class="team-card">
+          <div class="team-card-top">
+            <div class="team-avatar">PJ</div>
+            <div class="team-info">
+              <h4>doc. RNDr. Petr Jurečka, Ph.D.</h4>
+              <span class="role">Docent & Kvantová chemie</span>
+            </div>
+          </div>
+          <div class="team-card-body">
+            <p>
+              Mezinárodně uznávaný odborník na kvantovou chemii, nekovalentní interakce biomolekul a materiálové simulace. Vyučuje předměty Chemická struktura, Molekulové modelování 1 (MOM1) a Modelování materiálů a nanomateriálů.
+            </p>
+            <span class="team-research-tag">Kvantová chemie</span>
+            <span class="team-research-tag">Nekovalentní interakce</span>
+            <span class="team-research-tag">Strukturní chemie</span>
+          </div>
+        </div>
+
+        <!-- Mgr. Adam Matěj -->
+        <div class="team-card">
+          <div class="team-card-top">
+            <div class="team-avatar">AM</div>
+            <div class="team-info">
+              <h4>Mgr. Adam Matěj, Ph.D.</h4>
+              <span class="role">Výzkumník & Modelování reakcí</span>
+            </div>
+          </div>
+          <div class="team-card-body">
+            <p>
+              Zabývá se teoretickým studiem reakčních mechanismů, povrchovou chemií, katalýzou a kvantově-chemickými simulacemi materiálů. Vyučuje Modelování chemických reakcí (MCHR), Modelování materiálů a nanomateriálů a oborové semináře.
+            </p>
+            <span class="team-research-tag">Reakční mechanismy</span>
+            <span class="team-research-tag">DFT Výpočty</span>
+            <span class="team-research-tag">Katalýza</span>
+          </div>
+        </div>
+
+        <!-- Ing. Mgr. Václav Bazgier -->
+        <div class="team-card">
+          <div class="team-card-top">
+            <div class="team-avatar">VB</div>
+            <div class="team-info">
+              <h4>Ing. Mgr. Václav Bazgier, Ph.D.</h4>
+              <span class="role">Chemoinformatik & Vývojář vědeckých databází</span>
+            </div>
+          </div>
+          <div class="team-card-body">
+            <p>
+              Odborník na chemickou informatiku, chemoinformatické algoritmy, reprezentaci molekul a správu vědeckých databází (např. v rámci ELIXIR CZ). Vyučuje předměty Chemická informatika (CHIN), Chemické databáze (CHD), Programování pro chemiky a Strukturu atomů a molekul.
+            </p>
+            <span class="team-research-tag">Chemoinformatika</span>
+            <span class="team-research-tag">Chemické databáze</span>
+            <span class="team-research-tag">ELIXIR CZ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Textbook Teaser Section -->
+  <section class="section">
+    <div class="container">
+      <div class="textbook-teaser">
+        <div class="textbook-teaser-grid">
+          <div>
+            <span class="section-tag" style="background: rgba(255, 255, 255, 0.15); color: #ffffff; border-color: rgba(255, 255, 255, 0.3);">
+              Online výukový portál
+            </span>
+            <h2>Interaktivní učebnice s online cvičeními</h2>
+            <p>
+              Nahlédni do světa počítačové chemie přímo ve svém prohlížeči. Připravili jsme 10 srozumitelných kapitol pro středoškoláky doplněných o 3D simulátory, zobrazení molekul, infračervená spektra a AlphaFold vizualizace.
+            </p>
+            <div class="chapter-pills">
+              <span class="chapter-pill">1. Chemie bez baněk</span>
+              <span class="chapter-pill">2. Kvantová chemie</span>
+              <span class="chapter-pill">3. Kuličky a pružinky (IR)</span>
+              <span class="chapter-pill">4. Víceškálové metody</span>
+              <span class="chapter-pill">5. Chemoinformatika</span>
+              <span class="chapter-pill">6. Návrh léčiv & dokování</span>
+              <span class="chapter-pill">7. Skládání bílkovin (AI)</span>
+              <span class="chapter-pill">8. Studium reakcí</span>
+              <span class="chapter-pill">9. Materiály & baterie</span>
+            </div>
+            <a href="ucebnice.html" class="btn btn-cyan btn-lg">
+              🧪 Otevřít interaktivní učebnici
+            </a>
+          </div>
+
+          <div style="text-align: center;">
+            <div style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: var(--radius-lg); padding: 2rem; backdrop-filter: blur(12px);">
+              <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">💻✨</div>
+              <h4 style="color: #ffffff; margin-bottom: 0.5rem;">Okamžitě v prohlížeči</h4>
+              <p style="color: #cbd5e1; font-size: 0.88rem; margin-bottom: 1.25rem;">
+                Bez nutnosti cokoliv instalovat nebo se registrovat.
+              </p>
+              <a href="ucebnice.html#kapitola-2" class="btn btn-outline btn-sm" style="color: #ffffff; border-color: #ffffff;">
+                Vyzkoušet 3D orbitaly & molekuly
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sidebar & Contact Info (Inspirace bioinformatikou & nano) -->
+  <section class="section section-alt" id="kontakt">
+    <div class="container info-sidebar-grid">
+      <!-- Left Column: Admission & Steps -->
+      <div>
+        <span class="section-tag">Přijímací řízení</span>
+        <h2 class="section-title" style="font-size: 2rem;">Jak se přihlásit ke studiu?</h2>
+        <p style="font-size: 1.05rem; margin-bottom: 2rem;">
+          Přihláška ke studiu se podává elektronicky přes portál Univerzity Palackého.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div style="display: flex; gap: 1.25rem; background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div style="width: 38px; height: 38px; background: var(--up-blue); color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;">1</div>
+            <div>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Vyplň e-přihlášku na PřF UP</h4>
+              <p style="font-size: 0.9rem; margin-bottom: 0;">Vyber bakalářský program <strong>Počítačová chemie</strong> na <a href="https://prihlaska.upol.cz" target="_blank">prihlaska.upol.cz</a>.</p>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1.25rem; background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div style="width: 38px; height: 38px; background: var(--up-blue); color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;">2</div>
+            <div>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Termín podání přihlášek</h4>
+              <p style="font-size: 0.9rem; margin-bottom: 0;">Přihlášky do 1. kola se podávají obvykle do <strong>15. března</strong> (2. kolo dle vyhlášení).</p>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1.25rem; background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div style="width: 38px; height: 38px; background: var(--up-blue); color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;">3</div>
+            <div>
+              <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Navštiv nás na Dni otevřených dveří</h4>
+              <p style="font-size: 0.9rem; margin-bottom: 0;">Přijď se podívat na kampus Envelopa, prohlédnout si výpočetní učebny a popovídat si se studenty i vyučujícími.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Info box & Contacts (Style of bioinformatiku.cz sidebar) -->
+      <div>
+        <div class="info-sidebar-box">
+          <div class="info-box-title">
+            <span style="font-weight: 700;">Informační materiály</span>
+            <span>📄</span>
+          </div>
+          <a href="assets/docs/letak-pocitacova-chemie-upol.pdf" download class="download-card">
+            <div class="download-icon">📥</div>
+            <div class="download-info">
+              <h5>Informační leták pro středoškoláky</h5>
+              <span>PDF formát ke stažení • Přehled studia a uplatnění</span>
+            </div>
+          </a>
+          <a href="ucebnice.html" class="download-card">
+            <div class="download-icon">📖</div>
+            <div class="download-info">
+              <h5>Učebnice Počítačová chemie</h5>
+              <span>Online E-kniha s 3D cvičeními</span>
+            </div>
+          </a>
+          <a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank" class="download-card">
+            <div class="download-icon">🐙</div>
+            <div class="download-info">
+              <h5>GitHub: chemdatalab/pocitacova-chemie</h5>
+              <span>Kódy, výukové materiály a repozitář</span>
+            </div>
+          </a>
+        </div>
+
+        <div class="info-sidebar-box">
+          <div class="info-box-title">
+            <span style="font-weight: 700;">Kontakt na garanty</span>
+            <span>✉️</span>
+          </div>
+          <div class="contact-person">
+            <h5>Mgr. Marie Zgarbová, Ph.D.</h5>
+            <div class="title">Garantka studijního programu Počítačová chemie</div>
+            <a href="mailto:marie.zgarbova@upol.cz">📧 marie.zgarbova@upol.cz</a>
+            <a href="tel:+420585634762">📞 +420 585 634 762</a>
+          </div>
+
+          <div class="contact-person">
+            <h5>prof. RNDr. Karel Berka, Ph.D.</h5>
+            <div class="title">Katedra fyzikální chemie PřF UP</div>
+            <a href="mailto:karel.berka@upol.cz">📧 karel.berka@upol.cz</a>
+            <a href="tel:+420585634762">📞 +420 585 634 762</a>
+          </div>
+
+          <div class="contact-person">
+            <h5>Katedra fyzikální chemie PřF UP</h5>
+            <div class="title">17. listopadu 1192/12, 771 46 Olomouc</div>
+            <a href="https://fch.upol.cz" target="_blank">🌐 fch.upol.cz</a>
+            <a href="https://prf.upol.cz" target="_blank">🏛️ Přírodovědecká fakulta UP</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <img src="assets/img/logo-kfc-white.svg" alt="Katedra fyzikální chemie UPOL" style="height: 46px; margin-bottom: 1.25rem;">
+        <p>
+          Studijní program <strong>Počítačová chemie</strong> na Přírodovědecké fakultě Univerzity Palackého v Olomouci.
+        </p>
+      </div>
+
+      <div>
+        <h4>Rychlá navigace</h4>
+        <p><a href="#uvod">O programu</a></p>
+        <p><a href="#studium">Studijní plány (Bc. & Mgr.)</a></p>
+        <p><a href="#uplatneni">Uplatnění absolventů</a></p>
+        <p><a href="#tym">Vyučující a výzkum</a></p>
+      </div>
+
+      <div>
+        <h4>Výukové zdroje</h4>
+        <p><a href="ucebnice.html">Interaktivní učebnice</a></p>
+        <p><a href="https://karelberka.github.io/orbital-simulator/" target="_blank">3D Orbital Simulator</a></p>
+        <p><a href="https://molstar.org/viewer/" target="_blank">Mol* 3D Viewer</a></p>
+        <p><a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank">GitHub repozitář (chemdatalab)</a></p>
+        <p><a href="assets/docs/letak-pocitacova-chemie-upol.pdf" download>Leták programu (PDF)</a></p>
+      </div>
+
+      <div>
+        <h4>Univerzita Palackého</h4>
+        <p><a href="https://fch.upol.cz" target="_blank">Katedra fyzikální chemie</a></p>
+        <p><a href="https://prf.upol.cz" target="_blank">Přírodovědecká fakulta UP</a></p>
+        <p><a href="https://www.upol.cz" target="_blank">Univerzita Palackého v Olomouci</a></p>
+        <p><a href="https://prihlaska.upol.cz" target="_blank">Portál elektronické přihlášky</a></p>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>
+        © 2026 Přírodovědecká fakulta Univerzity Palackého v Olomouci. Všechna práva vyhrazena.
+      </div>
+      <div>
+        Vizuální identita UPOL • Katedra fyzikální chemie
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

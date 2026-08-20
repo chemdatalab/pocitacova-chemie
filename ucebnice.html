@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interaktivní učebnice Počítačová chemie | PřF UPOL</title>
+  <meta name="description" content="Interaktivní učebnice a online cvičení z počítačové chemie pro střední školy a zájemce o studium na Univerzitě Palackého v Olomouci.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo-kfc.svg">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/img/logo-kfc.svg" alt="Katedra fyzikální chemie PřF UPOL" class="nav-logo">
+      </a>
+
+      <nav>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="index.html" class="nav-link">← Zpět na web programu</a></li>
+          <li><a href="#kapitola-1" class="nav-link">1. Úvod</a></li>
+          <li><a href="#kapitola-2" class="nav-link">2. Kvantová chemie</a></li>
+          <li><a href="#kapitola-3" class="nav-link">3. Klasická mechanika</a></li>
+          <li><a href="#kapitola-6" class="nav-link">6. Dokování</a></li>
+          <li><a href="#kapitola-7" class="nav-link">7. Skládání bílkovin</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank" class="theme-toggle" title="GitHub repozitář (chemdatalab/pocitacova-chemie)" aria-label="GitHub">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <button id="theme-toggle" class="theme-toggle" title="Přepnout motiv">🌙</button>
+        <a href="index.html#kontakt" class="btn btn-primary btn-sm">Podat přihlášku</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Textbook Portal Header -->
+  <div style="background: linear-gradient(135deg, var(--up-blue-dark), var(--up-blue)); color: #ffffff; padding: 3rem 0; border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div style="display: inline-block; padding: 0.35rem 0.9rem; background: rgba(0, 180, 216, 0.2); border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; border: 1px solid rgba(0, 180, 216, 0.4);">
+        E-Učebnice a online simulátory
+      </div>
+      <h1 style="color: #ffffff; font-size: 2.75rem; margin-bottom: 0.5rem;">Počítačová chemie</h1>
+      <p style="font-size: 1.15rem; color: #cbd5e1; max-width: 800px; margin-bottom: 0;">
+        Přehled pro střední školy a uchazeče o studium na Přírodovědecké fakultě Univerzity Palackého v Olomouci. 
+        Vyzkoušejte si reálné simulace v prohlížeči.
+      </p>
+    </div>
+  </div>
+
+  <!-- Textbook Layout (Sticky TOC + Chapters) -->
+  <div class="container ucebnice-container">
+    <!-- Sidebar: Table of Contents -->
+    <aside class="ucebnice-sidebar">
+      <h4 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--up-blue-light);">Obsah učebnice</h4>
+      <ul class="toc-list">
+        <li class="toc-item"><a href="#predmluva" class="active">Předmluva</a></li>
+        <li class="toc-item"><a href="#kapitola-1">1. Úvod: Chemie bez baněk</a></li>
+        <li class="toc-item"><a href="#kapitola-2">2. Kvantová chemie</a></li>
+        <li class="toc-item"><a href="#kapitola-3">3. Klasická mechanika (IR)</a></li>
+        <li class="toc-item"><a href="#kapitola-4">4. Hrubozrnné & víceškálové</a></li>
+        <li class="toc-item"><a href="#kapitola-5">5. Chemoinformatika</a></li>
+        <li class="toc-item"><a href="#kapitola-6">6. Návrh léčiv & dokování</a></li>
+        <li class="toc-item"><a href="#kapitola-7">7. Skládání bílkovin (AI)</a></li>
+        <li class="toc-item"><a href="#kapitola-8">8. Studium reakcí</a></li>
+        <li class="toc-item"><a href="#kapitola-9">9. Materiálové vlastnosti</a></li>
+        <li class="toc-item"><a href="#kapitola-10">10. Kým se stát?</a></li>
+      </ul>
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.6rem;">
+        <a href="https://karelberka.github.io/orbital-simulator/" target="_blank" class="btn btn-outline btn-sm" style="width: 100%; text-align: center;">
+          🚀 3D Orbital Simulator
+        </a>
+        <a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <span>🐙</span> GitHub repozitář
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main>
+      <!-- Předmluva -->
+      <article class="chapter-article" id="predmluva">
+        <div class="chapter-header">
+          <div class="chapter-number">Úvodní slovo</div>
+          <h2 class="chapter-title">Předmluva</h2>
+        </div>
+        <p>
+          Když se řekne chemie, téměř každý si ihned představí bílý plášť, laboratoř a chemické sklo. Málokdo ale ví, že chemie se dá studovat i pomocí <strong>počítačových modelů a simulací</strong>. Právě představení základních principů a aplikací počítačové chemie je předmětem této učebnice.
+        </p>
+        <p>
+          Cílem tohoto textu je informovat středoškolské studenty o tomto atraktivním a stále se rozvíjejícím oboru a dát jim solidní základ při hledání vysokoškolských oborů. Tato učebnice vznikla v rámci příprav bakalářského oboru <strong>Počítačová chemie</strong> na Přírodovědecké fakultě Univerzity Palackého v Olomouci.
+        </p>
+        <div class="callout-remember">
+          <h5>💡 Jak pracovat s učebnicí</h5>
+          <p style="margin-bottom: 0;">
+            Text je doplněn o živá online cvičení přímo v prohlížeči. Každá kapitola začíná motivací a propojením s tématy, která již znáte ze střední školy (Newtonovy zákony, atomové orbitaly, elektronové konfigurace).
+          </p>
+        </div>
+      </article>
+
+      <!-- Kapitola 1 -->
+      <article class="chapter-article" id="kapitola-1">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 1</div>
+          <h2 class="chapter-title">Úvod: Chemie bez baněk, aneb proč vůbec počítat?</h2>
+        </div>
+        
+        <p>
+          Jedná se o obor, ve kterém se pomocí počítačových modelů studují chemické vlastnosti a procesy. Pod pojmem <strong>model</strong> se schovávají dvě klíčové části:
+        </p>
+        <ol style="margin-left: 1.5rem; margin-bottom: 1.5rem; color: var(--text-muted);">
+          <li><strong>Struktura studovaného systému:</strong> Musíme počítači přesně definovat, z jakých atomů se skládá a jakou má geometrii (prostorové souřadnice x, y, z).</li>
+          <li><strong>Výpočetní metoda:</strong> Fyzikální rovnice a algoritmy, které ze struktury spočítají hledané vlastnosti (energii, spektra, reaktivitu).</li>
+        </ol>
+
+        <h3 style="font-size: 1.35rem; margin: 1.75rem 0 0.75rem 0;">Proč počítat v počítači místo zkumavky?</h3>
+        <p>
+          <strong>1. Rozlišení:</strong> V 18 ml vody (1 mol) je neuvěřitelných <strong>6·10²³ molekul</strong>. Experiment vždy měří průměr celého tohoto obrovského souboru. V počítači můžeme izolovat jedinou molekulu a prozkoumat její chování s atomární přesností.
+        </p>
+        <p>
+          <strong>2. Podpora experimentu:</strong> Přechodové stavy chemických reakcí trvají zlomky femtosekund a „nedáte je do baňky“. Počítač je jediná cesta, jak tyto klíčové meziprodukty spatřit.
+        </p>
+        <p>
+          <strong>3. Průzkum a screening:</strong> Počítač dokáže otestovat miliony chemických struktur (např. kandidátů na léčiva či materiálů pro baterie) během několika hodin, aniž bychom museli syntetizovat gram toxického odpadu.
+        </p>
+
+        <!-- Interactive Exercise 1: Trade-off Triangle -->
+        <div class="interactive-box">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 1</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Trojúhelník kompromisů ve výpočetní chemii</h4>
+          </div>
+          <p style="font-size: 0.92rem;">
+            Vyzkoušejte pravidlo <em>„2 ze 3“</em>. Klikněte nebo táhněte kurzorem v trojúhelníku a zjistěte, jaká výpočetní metoda nejlépe odpovídá zvolenému poměru přesnosti, velikosti a rychlosti.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center;">
+            <div style="background: var(--bg-card); border-radius: var(--radius-md); padding: 0.5rem; display: flex; justify-content: center;">
+              <canvas id="triangle-canvas"></canvas>
+            </div>
+
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem;">
+              <span id="tri-method-badge" style="display: inline-block; font-size: 0.8rem; font-weight: 700; color: #ffffff; padding: 0.25rem 0.65rem; border-radius: var(--radius-full); margin-bottom: 0.75rem;">
+                Doporučená metoda
+              </span>
+              <h4 id="tri-method-title" style="font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--up-blue-light);">
+                Bod D: Víceškálové metody (QM/MM)
+              </h4>
+              <p id="tri-method-desc" style="font-size: 0.9rem; margin-bottom: 1rem;">
+                Kombinace metod nebo využití neuronových sítí k dosažení kvantové přesnosti za zlomek času.
+              </p>
+              <div id="tri-method-scale" style="font-size: 0.82rem; color: var(--text-subtle); background: var(--bg-primary); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm);">
+                <strong>Škála:</strong> Tisíce atomů s kvantovou přesností
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout-remember">
+          <h5>📌 Zapamatuj si:</h5>
+          <ul style="margin-left: 1.25rem; font-size: 0.92rem; margin-bottom: 0;">
+            <li>Model = geometrická struktura + výpočetní metoda.</li>
+            <li>Metodu vybíráme jako kompromis mezi přesností, velikostí systému a dostupným výpočetním časem.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Kapitola 2 -->
+      <article class="chapter-article" id="kapitola-2">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 2</div>
+          <h2 class="chapter-title">Kvantová chemie: Svět elektronů a jader</h2>
+        </div>
+        <p>
+          Všechny chemické vlastnosti – od barvy látky až po sílu chemické vazby – jsou určeny chováním <strong>elektronů</strong> v molekule. Protože je elektron téměř 2000krát lehčí než proton, nechová se jako klasická kulička, ale vykazuje vlnově-částicový dualismus.
+        </p>
+        <p>
+          Prostor okolo jádra, kde se elektron s největší pravděpodobností nachází, nazýváme <strong>atomový orbital</strong> ($s$, $p$, $d$, $f$). Kombinací atomových orbitalů vznikají <strong>molekulové orbitaly (MO)</strong>.
+        </p>
+
+        <!-- Interactive Exercise 2: H2 Morse Curve & LCAO -->
+        <div class="interactive-box">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 2</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Potenciální křivka molekuly H₂ a překryv orbitalů</h4>
+          </div>
+          <p style="font-size: 0.92rem;">
+            Posouvejte jezdcem vzdálenost mezi dvěma jádry vodíku $R(\text{H-H})$. Sledujte, jak se mění energie systému podle Morseova potenciálu a kde leží energetické minimum (vazebná délka $0.74\text{ \AA}$).
+          </p>
+
+          <div class="sim-controls">
+            <div class="sim-slider-group">
+              <label for="h2-distance-slider">Vzdálenost jader $R$:</label>
+              <input type="range" id="h2-distance-slider" min="0.4" max="3.5" step="0.05" value="0.74">
+              <span id="h2-distance-val" style="font-family: var(--font-mono); font-weight: 700; color: var(--up-blue-light); min-width: 60px;">0.74 Å</span>
+            </div>
+            <div style="font-size: 0.9rem;">
+              Energie $E$: <strong id="h2-energy-val" style="font-family: var(--font-mono); color: #f59e0b;">-4.75 eV</strong>
+            </div>
+          </div>
+
+          <canvas id="h2-morse-canvas" class="sim-canvas" style="height: 300px;"></canvas>
+        </div>
+
+        <!-- 3D Orbital Simulator Callout -->
+        <div style="background: linear-gradient(135deg, rgba(0, 73, 144, 0.1), rgba(0, 180, 216, 0.15)); border: 2px solid var(--up-blue-light); border-radius: var(--radius-lg); padding: 1.75rem; margin: 2rem 0; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+          <div>
+            <h4 style="font-size: 1.25rem; color: var(--up-blue-light); margin-bottom: 0.35rem;">
+              🌌 Vyzkoušejte plnohodnotný 3D Simulátor atomových orbitalů
+            </h4>
+            <p style="font-size: 0.92rem; margin-bottom: 0;">
+              Interaktivní webový nástroj od doc. Karla Berky (PřF UPOL). Umožňuje 3D Monte Carlo vizualizaci orbitalů pro libovolná kvantová čísla $n, l, m$.
+            </p>
+          </div>
+          <a href="https://karelberka.github.io/orbital-simulator/" target="_blank" class="btn btn-primary">
+            Otevřít 3D Orbital Simulator ↗
+          </a>
+        </div>
+
+        <h3 style="font-size: 1.35rem; margin: 1.75rem 0 0.75rem 0;">Iterativní optimalizace geometrie</h3>
+        <p>
+          Při hledání stabilního tvaru molekuly výpočetní program střídavě optimalizuje elektronovou konfiguraci a posouvá polohy jader v prostoru, dokud energie molekuly nedosáhne minima (konvergence).
+        </p>
+      </article>
+
+      <!-- Kapitola 3 -->
+      <article class="chapter-article" id="kapitola-3">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 3</div>
+          <h2 class="chapter-title">Klasická mechanika: Molekula jako kuličky a pružinky</h2>
+        </div>
+        <p>
+          Když potřebujeme simulovat velké systémy (tisíce molekul vody, proteiny či membrány), kvantová mechanika by byla příliš pomalá. Sáhneme proto po <strong>klasické molekulové dynamice (MD)</strong>.
+        </p>
+        <p>
+          Atomy aproximujeme jako hmotné kuličky s parciálním nábojem a vazby mezi nimi jako mechanické pružinky řídící se Hookeovým zákonem:
+          $$F = -k \cdot (r - r_0)$$
+        </p>
+
+        <!-- Interactive Exercise 3: IR Spectra & Vibrational Modes -->
+        <div class="interactive-box">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 3</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Vibrační pohyby molekul a Infračervená (IR) spektroskopie</h4>
+          </div>
+          <p style="font-size: 0.92rem;">
+            Zvolte normální vibrační mód a sledujte animaci kmitání atomů i odpovídající absorpční pík na infračerveném spektru.
+          </p>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <button class="btn btn-secondary btn-sm ir-mode-btn active" data-mode="h2o_bend">H₂O: Deformační kmit (1595 cm⁻¹)</button>
+            <button class="btn btn-secondary btn-sm ir-mode-btn" data-mode="h2o_sym">H₂O: Symetrický valenční (3657 cm⁻¹)</button>
+            <button class="btn btn-secondary btn-sm ir-mode-btn" data-mode="h2o_asym">H₂O: Asymetrický valenční (3756 cm⁻¹)</button>
+            <button class="btn btn-secondary btn-sm ir-mode-btn" data-mode="co2_asym">CO₂: Asymetrický kmit (2349 cm⁻¹)</button>
+          </div>
+
+          <div style="background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border-color); font-size: 0.88rem;">
+            <div id="ir-mode-freq" style="font-weight: 700; color: var(--up-blue-light); margin-bottom: 0.25rem;">H₂O: Deformační kmit | Frekvence: 1595 cm⁻¹</div>
+            <div id="ir-mode-desc" style="color: var(--text-muted);">Mění se úhel vazby H-O-H. Atomy vodíku se synchronně přibližují a oddalují od sebe.</div>
+          </div>
+
+          <canvas id="ir-canvas" class="sim-canvas"></canvas>
+        </div>
+      </article>
+
+      <!-- Kapitola 4 -->
+      <article class="chapter-article" id="kapitola-4">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 4</div>
+          <h2 class="chapter-title">Hrubozrnné a víceškálové metody: Od atomů k biologickým systémům</h2>
+        </div>
+        <p>
+          Biologické procesy v buňce probíhají na obrovských škálách milionů atomů. V hrubozrnných modelech (<em>Coarse-Grained</em>, např. silové pole MARTINI) slučujeme 3–4 těžké atomy do jediné zjednodušené interakční koule (beadu).
+        </p>
+        <p>
+          Pokud potřebujeme studovat enzymatickou reakci v obřím proteinu, propojíme obě metody – aktivní centrum popíšeme přesně kvantovou mechanikou (QM) a zbytek proteinu s vodou klasickou molekulovou mechanikou (MM). Za vývoj metod <strong>QM/MM</strong> byla v roce 2013 udělena Nobelova cena za chemii (Karplus, Levitt, Warshel).
+        </p>
+        <div class="callout-remember">
+          <h5>🔬 Prohlížení obřích biomolekulárních komplexů</h5>
+          <p style="margin-bottom: 0.5rem;">
+            Pro vizualizaci struktur s miliony atomů (ribozomy, virové kapsidy) se dnes v moderní vědě využívá nástroj <strong>Mol* (Molstar.org)</strong>, vyvíjený ve spolupráci s českými vědci.
+          </p>
+          <a href="https://molstar.org/viewer/" target="_blank" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;">
+            Otevřít Mol* Viewer ↗
+          </a>
+        </div>
+      </article>
+
+      <!-- Kapitola 5 -->
+      <article class="chapter-article" id="kapitola-5">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 5</div>
+          <h2 class="chapter-title">Chemoinformatika: Molekula jako data</h2>
+        </div>
+        <p>
+          Chemoinformatika převádí chemické sloučeniny do počítačově zpracovatelného formátu. Molekulu můžeme popsat například textovým řetězcem <strong>SMILES</strong>:
+        </p>
+        <div style="background: #0b1329; color: #38bdf8; font-family: var(--font-mono); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; font-size: 0.9rem;">
+          Ethanol: CCO<br>
+          Kyselina acetylsalicylová (Aspirin): CC(=O)Oc1ccccc1C(=O)O<br>
+          Kofein: Cn1cnc2c1c(=O)n(c(=O)n2C)C
+        </div>
+        <p>
+          Z těchto dat počítáme <strong>molekulární deskriptory</strong> (molekulovou hmotnost, polaritu, logP), které určují, zda má molekula šanci stát se úspěšným lékem (Lipinského pravidlo pěti).
+        </p>
+      </article>
+
+      <!-- Kapitola 6 -->
+      <article class="chapter-article" id="kapitola-6">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 6</div>
+          <h2 class="chapter-title">Návrh léčiv a dokování: Klíč, zámek a virtuální screening</h2>
+        </div>
+        <p>
+          Většina léků funguje tak, že se jako klíč zasune do specifické dutiny (aktivního místa) enzymu a zablokuje jeho nežádoucí činnost. <strong>Molekulární dokování</strong> je výpočetní metoda, která simuluje usazení malé molekuly do vazebné kapsy a vyhodnotí vazebnou afinitu ($\Delta G$).
+        </p>
+
+        <!-- Interactive Exercise 4: Docking Simulator -->
+        <div class="interactive-box">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 4</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Interaktivní dokovací simulátor</h4>
+          </div>
+          <p style="font-size: 0.92rem;">
+            Přetáhněte molekulu ligandu myší/dotykem do aktivního místa enzymu. Tlačítkem <em>„Otočit ligand“</em> vyzkoušejte správnou orientaci pro vytvoření vodíkových můstků (červený akceptor, modrý donor, žlutý hydrofobní kruh).
+          </p>
+
+          <div class="sim-controls">
+            <button id="docking-rotate-btn" class="btn btn-secondary btn-sm">🔄 Otočit ligand o 45°</button>
+            <div style="font-size: 0.9rem; margin-left: auto;">
+              Vazebná energie $\Delta G$: <strong id="docking-score" style="font-family: var(--font-mono); font-size: 1.1rem; color: #10b981;">-2.0 kcal/mol</strong>
+            </div>
+          </div>
+
+          <canvas id="docking-canvas" class="sim-canvas"></canvas>
+          <div id="docking-status" style="margin-top: 0.75rem; font-weight: 600; font-size: 0.9rem; text-align: center; color: #94a3b8;">
+            ❄️ Volný ligand mimo vazebnou kapsu.
+          </div>
+        </div>
+      </article>
+
+      <!-- Kapitola 7 -->
+      <article class="chapter-article" id="kapitola-7">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 7</div>
+          <h2 class="chapter-title">Skládání bílkovin: Od sekvence k funkci (AI revoluce)</h2>
+        </div>
+        <p>
+          Po více než 50 let bylo předpovězení 3D prostorového tvaru bílkoviny pouze z její lineární sekvence aminokyselin jedním z největších nevyřešených problémů biologie (tzv. Levinthalův paradox).
+        </p>
+        <p>
+          V roce 2020 přišel zlom díky umělé inteligenci <strong>AlphaFold</strong> od společnosti Google DeepMind a modelu <strong>ESMFold</strong>. V roce <strong>2024 byla za tento objev udělena Nobelova cena za chemii</strong> (Demis Hassabis, John Jumper, David Baker).
+        </p>
+
+        <!-- Interactive Exercise 5: 3D Protein & AlphaFold Explorer -->
+        <div class="interactive-box">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 5</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">3D Prohlížeč proteinů & AlphaFold DB (Mol*)</h4>
+          </div>
+          <p style="font-size: 0.92rem;">
+            Vyberte protein z databáze a prohlédněte si jeho 3D strukturu přímo v interaktivním Mol* okně. Můžete myší strukturu otáčet, přibližovat a měnit zobrazení.
+          </p>
+
+          <div style="margin-bottom: 1rem;">
+            <label for="af-protein-select" style="font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Vyberte protein:</label>
+            <select id="af-protein-select" style="padding: 0.45rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.9rem;">
+              <option value="1CRN">Crambin (PDB: 1CRN) – referenční krystalová struktura</option>
+              <option value="4HHB">Hemoglobin (PDB: 4HHB) – lidský kyslíkový transportér</option>
+              <option value="AF-P01308">Lidský inzulín (AlphaFold DB: P01308)</option>
+              <option value="6M0J">SARS-CoV-2 Spike RBD / ACE2 receptor (PDB: 6M0J)</option>
+            </select>
+          </div>
+
+          <div id="af-protein-desc" style="font-size: 0.88rem; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border-color);">
+            <strong>Crambin (PDB: 1CRN)</strong> (pLDDT: 96.4%) — Malý rostlinný protein krystalizovaný s ultravysokým rozlišením 0.54 Å.
+          </div>
+
+          <div style="width: 100%; height: 420px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); background: #000000;">
+            <iframe id="molstar-iframe" src="https://molstar.org/viewer/?pdb=1crn&hide-controls=1" style="width: 100%; height: 100%; border: none;"></iframe>
+          </div>
+        </div>
+      </article>
+
+      <!-- Kapitola 8 -->
+      <article class="chapter-article" id="kapitola-8">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 8</div>
+          <h2 class="chapter-title">Studium reakcí: Hledání cesty mezi reaktanty a produkty</h2>
+        </div>
+        <p>
+          Aby chemická reakce proběhla, musí molekuly překonat energetickou bariéru – <strong>aktivační energii ($E_a$)</strong>. Na vrcholu této bariéry leží <strong>přechodový stav</strong> (sedlový bod na ploše potenciální energie).
+        </p>
+        <p>
+          Počítačová chemie umožňuje mapovat reakční koordináty, počítat reakční rychlosti a navrhovat katalyzátory, které bariéru snižují a umožňují reakcím běžet za mírných teplot.
+        </p>
+      </article>
+
+      <!-- Kapitola 9 -->
+      <article class="chapter-article" id="kapitola-9">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 9</div>
+          <h2 class="chapter-title">Materiálové vlastnosti: Fotovoltaika, baterie a nanomateriály</h2>
+        </div>
+        <p>
+          Výpočetní metody hrají zásadní roli v moderní energetice. V Olomouci na Katedře fyzikální chemie a centru CATRIN se vědci zabývají modelováním:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.25rem; color: var(--text-muted);">
+          <li><strong>2D grafenových derivátů</strong> (fluorografen, grafénová kyselina) pro superkondenzátory.</li>
+          <li><strong>Materiálů pro akumulátory</strong> (rychlejší transport lithných a sodných iontů bez rizika vznícení).</li>
+          <li><strong>Perovskitových solárních článků</strong> s vysokou účinností přeměny světla na elektřinu.</li>
+        </ul>
+      </article>
+
+      <!-- Kapitola 10 -->
+      <article class="chapter-article" id="kapitola-10">
+        <div class="chapter-header">
+          <div class="chapter-number">Kapitola 10</div>
+          <h2 class="chapter-title">Kým se stát? Co dělají výpočetní chemičky a chemici?</h2>
+        </div>
+        <p>
+          Práce výpočetního chemika spojuje kreativitu vědce a flexibilitu IT specialisty. Místo práce v digestoři trávíte den modelováním molekul, psaním skriptů v Pythonu a diskusemi nad 3D strukturami s experimentátory z celého světa.
+        </p>
+        <p>
+          Chcete se stát součástí tohoto fascinujícího světa? Podejte si přihlášku na studijní program <strong>Počítačová chemie na PřF UPOL</strong> a otevřete si dveře k moderní kariéře!
+        </p>
+
+        <div style="margin-top: 2rem; text-align: center;">
+          <a href="https://prihlaska.upol.cz" target="_blank" class="btn btn-primary btn-lg">
+            🚀 Chci studovat Počítačovou chemii na UPOL
+          </a>
+        </div>
+      </article>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <div>
+        © 2026 Přírodovědecká fakulta Univerzity Palackého v Olomouci • Katedra fyzikální chemie
+      </div>
+      <div>
+        <a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank" style="color: var(--up-cyan); margin-right: 1.5rem;">GitHub repozitář</a>
+        <a href="index.html" style="color: var(--up-cyan);">Zpět na hlavní web programu</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/exercises.js"></script>
+</body>
+</html>
