@@ -506,9 +506,9 @@
                 </div>
               </div>
 
-              <!-- Canvas Area -->
-              <div style="position: relative; width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); overflow: hidden;">
-                <canvas id="cheminf-canvas" style="width: 100%; height: 100%; display: block; cursor: crosshair;"></canvas>
+              <!-- Canvas / SVG Area -->
+              <div id="cheminf-draw-container" style="position: relative; width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                <svg id="cheminf-svg" viewBox="0 0 300 210" style="width: 100%; height: 100%; display: block; cursor: crosshair;"></svg>
                 <div id="ketcher-hint" style="position: absolute; bottom: 4px; left: 8px; font-size: 0.72rem; color: #64748b; pointer-events: none;">
                   🖱️ Klikněte pro přidání atomu / vazby
                 </div>

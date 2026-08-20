@@ -1403,7 +1403,7 @@ function initCoarseGrainedMolstarViewer() {
    5. Kapitola 5: Interaktivní chemoinformatická laboratoř & kalkulátor deskriptorů
    ========================================================================== */
 function initChemoinformaticsLab() {
-  const canvas = document.getElementById('cheminf-canvas');
+  const svgEl = document.getElementById('cheminf-svg');
   const smilesInput = document.getElementById('cheminf-smiles-input');
   const calcBtn = document.getElementById('cheminf-calc-btn');
   const molNameEl = document.getElementById('cheminf-mol-name');
@@ -1424,24 +1424,19 @@ function initChemoinformaticsLab() {
   const lipinskiVerdict = document.getElementById('lipinski-verdict');
   const lipinskiDetails = document.getElementById('lipinski-details');
 
-  if (!canvas || !smilesInput) return;
+  if (!svgEl || !smilesInput) return;
 
-  const ctx = canvas.getContext('2d');
-  const width = canvas.width = 300;
-  const height = canvas.height = 210;
-
-  // Initialize SmilesDrawer if available
-  let drawer = null;
-  if (typeof SmilesDrawer !== 'undefined') {
-    drawer = new SmilesDrawer.Drawer({
+  // Initialize SmilesDrawer.SvgDrawer if available
+  let svgDrawer = null;
+  if (typeof SmilesDrawer !== 'undefined' && SmilesDrawer.SvgDrawer) {
+    svgDrawer = new SmilesDrawer.SvgDrawer({
       width: 300,
       height: 210,
       bondThickness: 2.0,
       bondLength: 20,
-      shortBondLength: 0.82,
+      shortBondLength: 0.85,
       bondSpacing: 0.18,
-      atomVisualization: 'default',
-      isomeric: true,
+      isDark: true,
       compactDrawing: false,
       themes: {
         dark: {
@@ -1629,53 +1624,66 @@ function initChemoinformaticsLab() {
   }
 
   function renderMolecule(smiles) {
-    ctx.clearRect(0, 0, width, height);
+    if (!svgEl) return;
+    svgEl.innerHTML = '';
 
     if (!smiles || !smiles.trim()) {
-      ctx.fillStyle = '#060b17';
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = '#64748b';
-      ctx.font = '12px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Prázdné plátno. Zvolte předvolbu nebo kreslete.', width / 2, height / 2);
+      svgEl.innerHTML = '<text x="150" y="105" fill="#64748b" font-size="12" font-family="Inter, sans-serif" text-anchor="middle">Prázdné plátno. Zvolte předvolbu nebo kreslete.</text>';
       return;
     }
 
-    if (drawer && typeof SmilesDrawer !== 'undefined') {
-      SmilesDrawer.parse(smiles, function (tree) {
-        drawer.draw(tree, canvas, 'dark', false);
-      }, function (err) {
-        drawFallbackGraph(ctx, smiles);
-      });
+    if (svgDrawer && typeof SmilesDrawer !== 'undefined') {
+      try {
+        SmilesDrawer.parse(smiles, function (tree) {
+          svgEl.innerHTML = '';
+          svgDrawer.draw(tree, 'cheminf-svg', 'dark', false);
+        }, function (err) {
+          console.warn('SmilesDrawer error for smiles:', smiles, err);
+          renderSvgFallback(svgEl, smiles);
+        });
+      } catch (e) {
+        console.warn('SmilesDrawer parse exception:', e);
+        renderSvgFallback(svgEl, smiles);
+      }
     } else {
-      drawFallbackGraph(ctx, smiles);
+      renderSvgFallback(svgEl, smiles);
     }
   }
 
-  function drawFallbackGraph(ctx, smiles) {
-    ctx.fillStyle = '#060b17';
-    ctx.fillRect(0, 0, width, height);
+  function renderSvgFallback(svg, smiles) {
+    let svgContent = `<rect width="300" height="210" fill="#060b17"/>`;
+    const isArom = smiles.includes('c1') || smiles.includes('c');
 
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 12px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('2D Molekulární struktura', width / 2, 35);
-
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    const count = Math.min(Math.max(smiles.length, 3), 10);
-    for (let i = 0; i < count; i++) {
-      const x = 35 + (i % 5) * 45;
-      const y = 80 + Math.floor(i / 5) * 50 + (i % 2 === 0 ? -10 : 10);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    if (isArom) {
+      // Draw accurate benzene ring in SVG
+      const cx = 130, cy = 105, r = 32;
+      let points = [];
+      for (let i = 0; i < 6; i++) {
+        const ang = (i * Math.PI) / 3;
+        points.push(`${cx + r * Math.cos(ang)},${cy + r * Math.sin(ang)}`);
+      }
+      svgContent += `
+        <polygon points="${points.join(' ')}" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="none" stroke="rgba(56, 189, 248, 0.45)" stroke-width="1.5"/>
+        <line x1="${cx + r}" y1="${cy}" x2="${cx + r + 30}" y2="${cy}" stroke="#cbd5e1" stroke-width="2"/>
+        <line x1="${cx - r}" y1="${cy}" x2="${cx - r - 30}" y2="${cy}" stroke="#cbd5e1" stroke-width="2"/>
+        <text x="${cx + r + 36}" y="${cy + 4}" fill="#ef4444" font-weight="bold" font-size="12" font-family="Inter, sans-serif">R₁</text>
+        <text x="${cx - r - 48}" y="${cy + 4}" fill="#38bdf8" font-weight="bold" font-size="12" font-family="Inter, sans-serif">R₂</text>
+      `;
+    } else {
+      // Zig-zag chain
+      let d = 'M 40,110 ';
+      const count = Math.min(Math.max(smiles.length, 3), 8);
+      for (let i = 0; i < count; i++) {
+        const x = 60 + i * 26;
+        const y = 110 + (i % 2 === 0 ? -22 : 22);
+        d += `L ${x},${y} `;
+      }
+      svgContent += `<path d="${d}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
     }
-    ctx.stroke();
 
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px JetBrains Mono, monospace';
-    ctx.fillText(smiles.length > 30 ? smiles.substring(0, 29) + '...' : smiles, width / 2, height - 20);
+    svgContent += `<text x="150" y="195" fill="#94a3b8" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">${smiles.length > 32 ? smiles.substring(0, 31) + '...' : smiles}</text>`;
+    svg.innerHTML = svgContent;
   }
 
   function updateUI(mol) {
@@ -1782,8 +1790,8 @@ function initChemoinformaticsLab() {
     });
   });
 
-  // Canvas Click: add atoms, rings or bonds
-  canvas.addEventListener('click', (e) => {
+  // SVG Click: add atoms, rings or bonds
+  svgEl.addEventListener('click', (e) => {
     let curSmiles = (smilesInput.value || '').trim();
 
     if (activeTool === 'erase') {
