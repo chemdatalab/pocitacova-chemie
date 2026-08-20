@@ -673,14 +673,118 @@
       <article class="chapter-article" id="kapitola-8">
         <div class="chapter-header">
           <div class="chapter-number">Kapitola 8</div>
-          <h2 class="chapter-title">Studium reakcí: Hledání cesty mezi reaktanty a produkty</h2>
+          <h2 class="chapter-title">Studium reakcí: Reakční koordináta, přechodový stav a katalýza</h2>
         </div>
         <p>
-          Aby chemická reakce proběhla, musí molekuly překonat energetickou bariéru – <strong>aktivační energii (<i>E</i><sub>a</sub>)</strong>. Na vrcholu této bariéry leží <strong>přechodový stav</strong> (sedlový bod na ploše potenciální energie).
+          Aby chemická reakce proběhla, musí reaktanty překonat energetickou bariéru – <strong>aktivační energii (<i>E</i><sub>a</sub>)</strong>. Na vrcholu této bariéry leží <strong>přechodový stav</strong> (<i>transition state</i>, značeno ‡) – nestabilní uspořádání jader s nejvyšší energií na reakční dráze (sedlový bod 1. řádu na ploše potenciální energie).
         </p>
-        <p>
-          Počítačová chemie umožňuje mapovat reakční koordináty, počítat reakční rychlosti a navrhovat katalyzátory, které bariéru snižují a umožňují reakcím běžet za mírných teplot.
-        </p>
+
+        <!-- Theory Cards: Transition State & Catalysis -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1.25rem 0;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem;">
+            <h4 style="font-size: 1rem; color: var(--up-cyan); margin-bottom: 0.4rem;">⛰️ Přechodový stav (‡) & S<sub>N</sub>2 substituce</h4>
+            <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+              U bimolekulární nukleofilní substituce (např. F⁻ + CH₃Cl → CH₃F + Cl⁻) dochází k útoku nukleofilu zezadu a k <strong>Waldenově inverzi</strong> (obrácení deštníku).
+            </p>
+            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0;">
+              V přechodovém stavu [F···CH₃···Cl]<sup>‡</sup> má centrální uhlík 5 vazebných kontaktů v trigonálně bipyramidálním uspořádání.
+            </p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem;">
+            <h4 style="font-size: 1rem; color: #10b981; margin-bottom: 0.4rem;">🧪 Jak funguje katalyzátor?</h4>
+            <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+              Katalyzátor (enzym nebo kovový povrch) nemění celkovou termodynamickou rovnováhu (Δ<i>H</i>), ale nabízí <strong>alternativní reakční cestu s nižší aktivační energií (<i>E</i><sub>a</sub>)</strong>.
+            </p>
+            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0;">
+              Dle Arrheniovy rovnice \(k = A \cdot e^{-E_a / RT}\) snížení bariéry o pouhých 25 kJ/mol zrychlí reakci při pokojové teplotě více než <strong>25 000×</strong>!
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive Exercise 8: Reaction Profile & Catalysis Simulator -->
+        <div class="interactive-box" style="margin-top: 1.5rem;">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 8</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Reakční koordináta, přechodový stav & vliv katalýzy</h4>
+          </div>
+          <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+            Posouvejte jezdec reakční koordináty (nebo spusťte animaci) a sledujte přeměnu reaktantů přes přechodový stav v grafu energie i v živé molekulární geometrii. Vyzkoušejte vliv katalyzátoru na snížení bariéry a zrychlení reakce.
+          </p>
+
+          <!-- System Selector & Controls -->
+          <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <label for="rxn-system-select" style="font-size: 0.88rem; font-weight: 600;">Reakce:</label>
+              <select id="rxn-system-select" style="padding: 0.35rem 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-main); font-size: 0.85rem;">
+                <option value="sn2">F⁻ + CH₃Cl → CH₃F + Cl⁻ (Sₙ2 substituce & Waldenova inverze)</option>
+                <option value="ester">Hydrolýza peptidu/esteru (Nekatalyzovaná vs. enzymatická)</option>
+                <option value="hydrogenation">Hydrogenace ethenu H₂ + C₂H₄ (Nekatalyzovaná vs. Pt katalyzátor)</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <label style="font-size: 0.88rem; display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--up-cyan); font-weight: 600;">
+                <input type="checkbox" id="rxn-catalyst-toggle" style="cursor: pointer; accent-color: var(--up-cyan);">
+                🧪 Zapnout katalyzátor
+              </label>
+            </div>
+          </div>
+
+          <!-- Animation & Step Controls -->
+          <div style="display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 0.85rem;">
+            <button id="rxn-play-btn" class="btn btn-primary btn-sm">▶ Přehrát reakci</button>
+            <button id="rxn-ts-btn" class="btn btn-secondary btn-sm">⚡ Skok na přechodový stav (‡)</button>
+            <button id="rxn-reset-btn" class="btn btn-secondary btn-sm">⏮ Reaktanty</button>
+
+            <div style="flex-grow: 1; display: flex; align-items: center; gap: 0.6rem; margin-left: 0.5rem; min-width: 200px;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Reaktanty</span>
+              <input type="range" id="rxn-coord-slider" min="0" max="100" value="0" style="flex-grow: 1; accent-color: var(--up-cyan); cursor: pointer;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Produkty</span>
+            </div>
+          </div>
+
+          <!-- Dual Visualizer: PES Energy Profile (Left) & Molecular Geometry (Right) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <!-- Left: PES Graph Canvas -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <span style="font-size: 0.84rem; font-weight: 600; color: var(--up-cyan);">📈 Profil potenciální energie (PES)</span>
+                <span id="rxn-current-energy" style="font-family: var(--font-mono); font-size: 0.82rem; color: #f8fafc;">ΔE = 0.0 kJ/mol</span>
+              </div>
+              <canvas id="rxn-pes-canvas" width="340" height="210" style="width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: block;"></canvas>
+            </div>
+
+            <!-- Right: 2D Reaction Geometry Canvas -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <span style="font-size: 0.84rem; font-weight: 600; color: #10b981;">⚛️ Molekulární geometrie podél reakční dráhy</span>
+                <span id="rxn-coord-val" style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted);">ξ = 0 %</span>
+              </div>
+              <canvas id="rxn-geom-canvas" width="340" height="210" style="width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: block;"></canvas>
+            </div>
+          </div>
+
+          <!-- Live Energetics Info Box -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.65rem; background: var(--bg-card); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.82rem;">
+            <div>
+              <span style="color: var(--text-subtle);">Aktuální fáze:</span><br>
+              <strong id="rxn-state-badge" style="color: #38bdf8;">Reaktanty</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Aktivační bariéra (Eₐ):</span><br>
+              <strong id="rxn-ea-val" style="color: #ef4444; font-family: var(--font-mono);">42.0 kJ/mol</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Reakční teplo (ΔH):</span><br>
+              <strong id="rxn-dh-val" style="color: #10b981; font-family: var(--font-mono);">-125.0 kJ/mol (Exotermní)</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Zrychlení katalyzátorem:</span><br>
+              <strong id="rxn-rate-val" style="color: var(--up-cyan); font-family: var(--font-mono);">1× (bez katalýzy)</strong>
+            </div>
+          </div>
+        </div>
       </article>
 
       <!-- Kapitola 9 -->

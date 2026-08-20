@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initChemoinformaticsLab();
   initDockingSimulator();
   initAlphaFoldExplorer();
+  initReactionPathwayLab();
 });
 
 /* ==========================================================================
@@ -1872,4 +1873,608 @@ function initChemoinformaticsLab() {
   // Initial Draw with Aspirin
   const initialMol = parseAndComputeSMILES(smilesInput.value);
   updateUI(initialMol);
+}
+
+/* ==========================================================================
+   8. Kapitola 8: Studium reakcí, reakční koordináta & katalýza
+   ========================================================================== */
+function initReactionPathwayLab() {
+  const pesCanvas = document.getElementById('rxn-pes-canvas');
+  const geomCanvas = document.getElementById('rxn-geom-canvas');
+  const systemSelect = document.getElementById('rxn-system-select');
+  const catToggle = document.getElementById('rxn-catalyst-toggle');
+  const slider = document.getElementById('rxn-coord-slider');
+  const playBtn = document.getElementById('rxn-play-btn');
+  const tsBtn = document.getElementById('rxn-ts-btn');
+  const resetBtn = document.getElementById('rxn-reset-btn');
+
+  const energyEl = document.getElementById('rxn-current-energy');
+  const coordValEl = document.getElementById('rxn-coord-val');
+  const stateBadge = document.getElementById('rxn-state-badge');
+  const eaValEl = document.getElementById('rxn-ea-val');
+  const dhValEl = document.getElementById('rxn-dh-val');
+  const rateValEl = document.getElementById('rxn-rate-val');
+
+  if (!pesCanvas || !geomCanvas || !slider) return;
+
+  const ctxPes = pesCanvas.getContext('2d');
+  const ctxGeom = geomCanvas.getContext('2d');
+  const wPes = pesCanvas.width = 340;
+  const hPes = pesCanvas.height = 210;
+  const wGeom = geomCanvas.width = 340;
+  const hGeom = geomCanvas.height = 210;
+
+  // Reaction systems database
+  const systems = {
+    sn2: {
+      name: 'F⁻ + CH₃Cl → CH₃F + Cl⁻',
+      type: 'Bimolekulární nukleofilní substituce (S_N2)',
+      ea0: 42.0, // kJ/mol
+      eacat: 18.0, // kJ/mol
+      dh: -125.0, // kJ/mol (exothermic)
+      catName: 'Polární aprotické prostředí / Fázový katalyzátor',
+      drawGeom: (ctx, xi, isCat) => drawSn2Geometry(ctx, xi, isCat)
+    },
+    ester: {
+      name: 'Hydrolýza peptidu/esteru',
+      type: 'Nukleofilní adice na karbonylovou skupinu',
+      ea0: 88.0,
+      eacat: 24.0,
+      dh: -22.0,
+      catName: 'Enzymová proteáza (katalytická triáda Ser-His-Asp)',
+      drawGeom: (ctx, xi, isCat) => drawEsterHydrolysisGeometry(ctx, xi, isCat)
+    },
+    hydrogenation: {
+      name: 'H₂ + C₂H₄ → C₂H₆ (Hydrogenace ethenu)',
+      type: 'Heterogenní katalýza na platinovém povrchu',
+      ea0: 180.0,
+      eacat: 45.0,
+      dh: -137.0,
+      catName: 'Platinový kovový katalyzátor (Pt nanopovrch)',
+      drawGeom: (ctx, xi, isCat) => drawHydrogenationGeometry(ctx, xi, isCat)
+    }
+  };
+
+  let currentSystem = 'sn2';
+  let isCatalyzed = false;
+  let animId = null;
+  let isPlaying = false;
+
+  function getEnergy(xi, ea, dh) {
+    // xi: 0 .. 1
+    // Smooth asymmetric reaction profile curve
+    // Peak at xi = 0.5
+    const t = xi * Math.PI;
+    const barrier = ea * Math.pow(Math.sin(t), 2);
+    const thermo = dh * (1 - Math.cos(xi * Math.PI)) / 2;
+    return barrier + thermo;
+  }
+
+  function drawPES(xi) {
+    ctxPes.clearRect(0, 0, wPes, hPes);
+
+    const sys = systems[currentSystem];
+    const ea = isCatalyzed ? sys.eacat : sys.ea0;
+    const dh = sys.dh;
+
+    // Background grid
+    ctxPes.fillStyle = '#060b17';
+    ctxPes.fillRect(0, 0, wPes, hPes);
+
+    ctxPes.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctxPes.lineWidth = 1;
+    for (let x = 30; x < wPes; x += 40) {
+      ctxPes.beginPath(); ctxPes.moveTo(x, 15); ctxPes.lineTo(x, hPes - 25); ctxPes.stroke();
+    }
+    for (let y = 20; y < hPes - 20; y += 30) {
+      ctxPes.beginPath(); ctxPes.moveTo(30, y); ctxPes.lineTo(wPes - 15, y); ctxPes.stroke();
+    }
+
+    // Axes
+    ctxPes.strokeStyle = '#475569';
+    ctxPes.lineWidth = 1.5;
+    ctxPes.beginPath();
+    ctxPes.moveTo(35, 15);
+    ctxPes.lineTo(35, hPes - 25);
+    ctxPes.lineTo(wPes - 15, hPes - 25);
+    ctxPes.stroke();
+
+    // Axis labels
+    ctxPes.fillStyle = '#94a3b8';
+    ctxPes.font = '9px Inter, sans-serif';
+    ctxPes.fillText('E', 18, 25);
+    ctxPes.fillText('Reakční koordináta (ξ)', wPes - 120, hPes - 8);
+    ctxPes.fillText('R', 40, hPes - 10);
+    ctxPes.fillText('TS ‡', wPes / 2 - 8, hPes - 10);
+    ctxPes.fillText('P', wPes - 30, hPes - 10);
+
+    // Energy scaling
+    // Max E ~ ea0 + 10, Min E ~ dh - 10
+    const maxE = Math.max(sys.ea0, sys.eacat) + 15;
+    const minE = Math.min(dh, 0) - 20;
+    const rangeE = maxE - minE;
+
+    function scaleY(e) {
+      const norm = (e - minE) / rangeE;
+      return (hPes - 35) - norm * (hPes - 60);
+    }
+    function scaleX(xNorm) {
+      return 40 + xNorm * (wPes - 65);
+    }
+
+    // Zero energy line (Reaktanty)
+    const yZero = scaleY(0);
+    ctxPes.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+    ctxPes.setLineDash([4, 4]);
+    ctxPes.beginPath();
+    ctxPes.moveTo(35, yZero);
+    ctxPes.lineTo(wPes - 20, yZero);
+    ctxPes.stroke();
+    ctxPes.setLineDash([]);
+
+    // 1. Draw Uncatalyzed Curve (always or as comparison)
+    ctxPes.strokeStyle = isCatalyzed ? 'rgba(239, 68, 68, 0.45)' : '#ef4444';
+    ctxPes.lineWidth = isCatalyzed ? 1.8 : 2.5;
+    ctxPes.beginPath();
+    for (let step = 0; step <= 60; step++) {
+      const xNorm = step / 60;
+      const e = getEnergy(xNorm, sys.ea0, sys.dh);
+      const px = scaleX(xNorm);
+      const py = scaleY(e);
+      if (step === 0) ctxPes.moveTo(px, py);
+      else ctxPes.lineTo(px, py);
+    }
+    ctxPes.stroke();
+
+    // 2. Draw Catalyzed Curve if active
+    if (isCatalyzed) {
+      ctxPes.strokeStyle = '#10b981';
+      ctxPes.lineWidth = 2.8;
+      ctxPes.beginPath();
+      for (let step = 0; step <= 60; step++) {
+        const xNorm = step / 60;
+        const e = getEnergy(xNorm, sys.eacat, sys.dh);
+        const px = scaleX(xNorm);
+        const py = scaleY(e);
+        if (step === 0) ctxPes.moveTo(px, py);
+        else ctxPes.lineTo(px, py);
+      }
+      ctxPes.stroke();
+
+      // Legend in PES
+      ctxPes.font = 'bold 9px Inter, sans-serif';
+      ctxPes.fillStyle = '#ef4444';
+      ctxPes.fillText(`Bez kat. (Eₐ=${sys.ea0} kJ)`, 45, 30);
+      ctxPes.fillStyle = '#10b981';
+      ctxPes.fillText(`S kat. (Eₐ=${sys.eacat} kJ)`, 45, 44);
+    } else {
+      ctxPes.font = 'bold 9px Inter, sans-serif';
+      ctxPes.fillStyle = '#ef4444';
+      ctxPes.fillText(`Eₐ = ${sys.ea0} kJ/mol`, scaleX(0.5) - 25, scaleY(sys.ea0) - 8);
+    }
+
+    // 3. Current Position Marker
+    const curE = getEnergy(xi, ea, dh);
+    const curX = scaleX(xi);
+    const curY = scaleY(curE);
+
+    // Glow ring
+    ctxPes.fillStyle = isCatalyzed ? 'rgba(16, 185, 129, 0.35)' : 'rgba(56, 189, 248, 0.35)';
+    ctxPes.beginPath();
+    ctxPes.arc(curX, curY, 9, 0, Math.PI * 2);
+    ctxPes.fill();
+
+    // Solid dot
+    ctxPes.fillStyle = isCatalyzed ? '#10b981' : '#38bdf8';
+    ctxPes.beginPath();
+    ctxPes.arc(curX, curY, 4.5, 0, Math.PI * 2);
+    ctxPes.fill();
+    ctxPes.strokeStyle = '#ffffff';
+    ctxPes.lineWidth = 1.2;
+    ctxPes.stroke();
+
+    return curE;
+  }
+
+  // --- Geometry Renderers ---
+  function drawSn2Geometry(ctx, xi, isCat) {
+    ctx.clearRect(0, 0, wGeom, hGeom);
+    ctx.fillStyle = '#060b17';
+    ctx.fillRect(0, 0, wGeom, hGeom);
+
+    const cx = wGeom / 2;
+    const cy = hGeom / 2 + 10;
+
+    // Nucleophile F- flying in from left (x: 40 -> cx - 35)
+    // Leaving group Cl- flying out to right (x: cx + 38 -> wGeom - 40)
+    const fDist = 110 - xi * 75; // 110 at xi=0 down to 35 at xi=1
+    const clDist = 38 + xi * 75; // 38 at xi=0 up to 113 at xi=1
+
+    const fX = cx - fDist;
+    const clX = cx + clDist;
+
+    // Walden Inversion Angle for 3 Hydrogens:
+    // xi = 0 -> theta = 125 deg (tilted back to the left)
+    // xi = 0.5 (TS) -> theta = 90 deg (planar perpendicular trigonal disk!)
+    // xi = 1 -> theta = 55 deg (tilted forward to the right - umbrella inverted!)
+    const tiltAngle = (125 - xi * 70) * (Math.PI / 180);
+    const hLen = 32;
+
+    // Draw Bonds
+    ctx.lineWidth = 2.2;
+
+    // C-F bond (dashed if forming, solid when formed)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(fX, cy);
+    ctx.strokeStyle = xi < 0.65 ? 'rgba(6, 182, 212, 0.6)' : '#06b6d4';
+    if (xi < 0.8) ctx.setLineDash([4, 3]);
+    else ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // C-Cl bond (solid when reactant, dashed when breaking)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(clX, cy);
+    ctx.strokeStyle = xi > 0.35 ? 'rgba(34, 197, 94, 0.6)' : '#22c55e';
+    if (xi > 0.2) ctx.setLineDash([4, 3]);
+    else ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 3 C-H Bonds with 3D projection
+    const hConfigs = [
+      { ang: 0, scaleY: 1.0, dy: -hLen },
+      { ang: 2.1, scaleY: 0.7, dy: hLen * 0.8, dx: -10 },
+      { ang: 4.2, scaleY: 0.7, dy: hLen * 0.8, dx: 10 }
+    ];
+
+    hConfigs.forEach((h, idx) => {
+      const hx = cx - Math.cos(tiltAngle) * hLen + (h.dx || 0) * (1 - Math.abs(xi - 0.5));
+      const hy = cy + h.dy;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(hx, hy);
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2.0;
+      ctx.stroke();
+
+      // Hydrogen Atom Dot
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(hx, hy, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 8px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('H', hx, hy);
+    });
+
+    // Central Carbon Atom
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('C', cx, cy);
+
+    // Fluorine (Nucleophile)
+    ctx.fillStyle = '#06b6d4';
+    ctx.beginPath();
+    ctx.arc(fX, cy, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.fillText('F', fX, cy);
+
+    // Chlorine (Leaving Group)
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(clX, cy, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.fillText('Cl', clX, cy);
+
+    // Delta charges (δ- / δ+)
+    ctx.font = '9px JetBrains Mono, monospace';
+    if (xi < 0.9) {
+      ctx.fillStyle = '#06b6d4';
+      ctx.fillText(`δ⁻ (${(1 - xi).toFixed(2)})`, fX, cy - 16);
+    }
+    if (xi > 0.1) {
+      ctx.fillStyle = '#22c55e';
+      ctx.fillText(`δ⁻ (${xi.toFixed(2)})`, clX, cy - 18);
+    }
+
+    // Catalyst visual (Stabilizing solvation / crown ether / ion pair)
+    if (isCat) {
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.arc(cx, cy - 35, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 8px Inter, sans-serif';
+      ctx.fillText('Kat⁺', cx, cy - 35);
+      ctx.font = '8px Inter, sans-serif';
+      ctx.fillText('Elektrostatická stabilizace TS ‡', cx, cy - 54);
+    }
+
+    // State title
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    if (xi < 0.25) ctx.fillText('Výchozí stav: Nukleofilní atak F⁻ zezadu', cx, 22);
+    else if (xi > 0.75) ctx.fillText('Konečný stav: CH₃F s invertovanou konfigurací + Cl⁻', cx, 22);
+    else ctx.fillText('⚡ Přechodový stav [F···CH₃···Cl]‡ (planární CH₃ disk)', cx, 22);
+  }
+
+  function drawEsterHydrolysisGeometry(ctx, xi, isCat) {
+    ctx.clearRect(0, 0, wGeom, hGeom);
+    ctx.fillStyle = '#060b17';
+    ctx.fillRect(0, 0, wGeom, hGeom);
+
+    const cx = wGeom / 2;
+    const cy = hGeom / 2 + 15;
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Hydrolýza: Nukleofilní adice vody / OH⁻ na karbonylový uhlík', cx, 20);
+
+    // Carbonyl Carbon
+    ctx.fillStyle = '#475569';
+    ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillText('C', cx, cy);
+
+    // Oxygen =O (top)
+    const oDist = 32;
+    ctx.strokeStyle = xi > 0.4 ? 'rgba(239, 68, 68, 0.6)' : '#ef4444';
+    ctx.lineWidth = xi > 0.4 ? 2.0 : 3.0;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - oDist); ctx.stroke();
+
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath(); ctx.arc(cx, cy - oDist, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillText('O', cx, cy - oDist);
+
+    // Nucleophile H2O / OH- approaching from bottom-left
+    const nucDist = 80 - xi * 48;
+    const nucX = cx - nucDist * 0.7;
+    const nucY = cy + nucDist * 0.7;
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.0;
+    if (xi < 0.8) ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(nucX, nucY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath(); ctx.arc(nucX, nucY, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillText('OH', nucX, nucY);
+
+    // Leaving group -OR' leaving to bottom-right
+    const lgDist = 32 + xi * 48;
+    const lgX = cx + lgDist * 0.7;
+    const lgY = cy + lgDist * 0.7;
+
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2.0;
+    if (xi > 0.3) ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(lgX, lgY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(lgX, lgY, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillText("OR'", lgX, lgY);
+
+    // Enzyme Oxyanion Hole / Histidine catalysis
+    if (isCat) {
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.fillText('Ser-195 / His-57 enzymová triáda', cx, cy - 52);
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath(); ctx.moveTo(cx - 20, cy - oDist - 12); ctx.lineTo(cx, cy - oDist); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + 20, cy - oDist - 12); ctx.lineTo(cx, cy - oDist); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillText('H-můstky v oxyaniontové kapse', cx, cy + 62);
+    }
+  }
+
+  function drawHydrogenationGeometry(ctx, xi, isCat) {
+    ctx.clearRect(0, 0, wGeom, hGeom);
+    ctx.fillStyle = '#060b17';
+    ctx.fillRect(0, 0, wGeom, hGeom);
+
+    const cx = wGeom / 2;
+    const cy = hGeom / 2;
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Hydrogenace ethenu: H₂ + C₂H₄ → C₂H₆', cx, 20);
+
+    // Ethene / Ethane C-C core
+    const c1X = cx - 24;
+    const c2X = cx + 24;
+    const cY = cy - (isCat ? 15 : 0);
+
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = xi > 0.6 ? 2.5 : 4.0; // Double bond weakens to single
+    ctx.beginPath(); ctx.moveTo(c1X, cY); ctx.lineTo(c2X, cY); ctx.stroke();
+
+    ctx.fillStyle = '#475569';
+    ctx.beginPath(); ctx.arc(c1X, cY, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(c2X, cY, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.fillText('C', c1X, cY);
+    ctx.fillText('C', c2X, cY);
+
+    // H atoms
+    const hDist = 65 - xi * 40;
+    const h1X = c1X - (isCat ? 0 : 15);
+    const h1Y = cY + hDist;
+    const h2X = c2X + (isCat ? 0 : 15);
+    const h2Y = cY + hDist;
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.0;
+    if (xi < 0.8) ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(c1X, cY); ctx.lineTo(h1X, h1Y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(c2X, cY); ctx.lineTo(h2X, h2Y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath(); ctx.arc(h1X, h1Y, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(h2X, h2Y, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 8px Inter, sans-serif';
+    ctx.fillText('H', h1X, h1Y);
+    ctx.fillText('H', h2X, h2Y);
+
+    // Platinum Metal Surface
+    if (isCat) {
+      const slabY = cy + 42;
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(30, slabY, wGeom - 60, 35);
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(30, slabY); ctx.lineTo(wGeom - 30, slabY); ctx.stroke();
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 9px Inter, sans-serif';
+      ctx.fillText('Pt (111) kovový povrch – chemisorpce a disociace H₂', cx, slabY + 22);
+    }
+  }
+
+  function update() {
+    const xi = parseFloat(slider.value) / 100;
+    const sys = systems[currentSystem];
+    const ea = isCatalyzed ? sys.eacat : sys.ea0;
+    const dh = sys.dh;
+
+    // Draw PES and Geometry
+    const curE = drawPES(xi);
+    sys.drawGeom(ctxGeom, xi, isCatalyzed);
+
+    // Update Numerical Indicators
+    if (energyEl) energyEl.innerText = `ΔE = ${curE > 0 ? '+' : ''}${curE.toFixed(1)} kJ/mol`;
+    if (coordValEl) coordValEl.innerText = `ξ = ${Math.round(xi * 100)} %`;
+    if (eaValEl) eaValEl.innerText = `${ea.toFixed(1)} kJ/mol`;
+    if (dhValEl) dhValEl.innerText = `${dh.toFixed(1)} kJ/mol (${dh < 0 ? 'Exotermní' : 'Endotermní'})`;
+
+    // Phase badge
+    if (stateBadge) {
+      if (xi < 0.15) {
+        stateBadge.innerText = 'Reaktanty (Výchozí látky)';
+        stateBadge.style.color = '#38bdf8';
+      } else if (xi > 0.85) {
+        stateBadge.innerText = 'Produkty (Konečný stav)';
+        stateBadge.style.color = '#10b981';
+      } else if (Math.abs(xi - 0.5) < 0.08) {
+        stateBadge.innerText = '⚡ Přechodový stav TS (‡) – sedlový bod';
+        stateBadge.style.color = '#ef4444';
+      } else {
+        stateBadge.innerText = 'Reakční dráha (překonávání bariéry)';
+        stateBadge.style.color = '#f59e0b';
+      }
+    }
+
+    // Rate Acceleration
+    if (rateValEl) {
+      if (!isCatalyzed) {
+        rateValEl.innerText = '1× (bez katalýzy)';
+        rateValEl.style.color = 'var(--text-muted)';
+      } else {
+        const deltaEa = (sys.ea0 - sys.eacat) * 1000; // J/mol
+        const R = 8.314;
+        const T = 298.15;
+        const accel = Math.exp(deltaEa / (R * T));
+        
+        let accelStr = '';
+        if (accel > 1e9) accelStr = `${(accel / 1e9).toFixed(1)} × 10⁹×`;
+        else if (accel > 1e6) accelStr = `${(accel / 1e6).toFixed(1)} miliónů×`;
+        else if (accel > 1e3) accelStr = `${Math.round(accel / 1000)} tisíc×`;
+        else accelStr = `${Math.round(accel)}×`;
+
+        rateValEl.innerText = `🚀 ${accelStr} rychlejší`;
+        rateValEl.style.color = '#10b981';
+      }
+    }
+  }
+
+  // --- Event Listeners ---
+  slider.addEventListener('input', () => {
+    if (isPlaying) stopAnimation();
+    update();
+  });
+
+  systemSelect.addEventListener('change', (e) => {
+    currentSystem = e.target.value;
+    if (isPlaying) stopAnimation();
+    update();
+  });
+
+  catToggle.addEventListener('change', (e) => {
+    isCatalyzed = e.target.checked;
+    update();
+  });
+
+  tsBtn.addEventListener('click', () => {
+    if (isPlaying) stopAnimation();
+    slider.value = 50;
+    update();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (isPlaying) stopAnimation();
+    slider.value = 0;
+    update();
+  });
+
+  function startAnimation() {
+    isPlaying = true;
+    playBtn.innerText = '⏸ Pozastavit';
+    playBtn.classList.replace('btn-primary', 'btn-secondary');
+
+    let forward = true;
+    function loop() {
+      let val = parseFloat(slider.value);
+      if (forward) {
+        val += 0.8;
+        if (val >= 100) { val = 100; forward = false; }
+      } else {
+        val -= 0.8;
+        if (val <= 0) { val = 0; forward = true; }
+      }
+      slider.value = val;
+      update();
+      if (isPlaying) animId = requestAnimationFrame(loop);
+    }
+    animId = requestAnimationFrame(loop);
+  }
+
+  function stopAnimation() {
+    isPlaying = false;
+    if (animId) cancelAnimationFrame(animId);
+    playBtn.innerText = '▶ Přehrát reakci';
+    playBtn.classList.replace('btn-secondary', 'btn-primary');
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (isPlaying) stopAnimation();
+    else startAnimation();
+  });
+
+  // Initial draw
+  update();
 }
