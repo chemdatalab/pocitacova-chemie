@@ -1313,8 +1313,14 @@ function initAlphaFoldExplorer() {
     'AF-CYP3A4': {
       name: 'Cytochrom P450 3A4 (AlphaFold DB: P08684)',
       plddt: 94.8,
-      desc: 'Nejdůležitější lidský enzym zodpovědný za metabolickou přeměnu a odbourávání více než 50 % všech klinicky užívaných léčiv v játrech.',
-      url: 'https://molstar.org/viewer/?af-id=P08684&hide-controls=1'
+      desc: 'Nejdůležitější lidský enzym zodpovědný za metabolickou přeměnu a odbourávání více než 50 % všech klinicky užívaných léčiv v játrech. Vypočtený model AlphaFold DB s barevným pLDDT skóre.',
+      url: 'https://molstar.org/viewer/?afdb=P08684&hide-controls=1'
+    },
+    '1TQN': {
+      name: 'Cytochrom P450 3A4 s hemem (PDB: 1TQN)',
+      plddt: 98.0,
+      desc: 'Experimentální rentgenová krystalová struktura lidského CYP3A4 s navázaným hemem v aktivním místě ve vysokém rozlišení 2.05 Å.',
+      url: 'https://molstar.org/viewer/?pdb=1tqn&hide-controls=1'
     },
     '1CRN': {
       name: 'Crambin (PDB: 1CRN)',
@@ -1332,7 +1338,7 @@ function initAlphaFoldExplorer() {
       name: 'Lidský inzulín (AlphaFold DB: P01308)',
       plddt: 91.2,
       desc: 'Hormon regulující hladinu glukózy v krvi. Vypočtený model AlphaFold DB s vysokou spolehlivostí predikce.',
-      url: 'https://molstar.org/viewer/?af-id=P01308&hide-controls=1'
+      url: 'https://molstar.org/viewer/?afdb=P01308&hide-controls=1'
     },
     '1EMA': {
       name: 'Zelený fluorescenční protein GFP (PDB: 1EMA)',
