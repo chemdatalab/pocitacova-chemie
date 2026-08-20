@@ -637,32 +637,34 @@
           V roce 2020 přišel zlom díky umělé inteligenci <strong>AlphaFold</strong> od společnosti Google DeepMind a modelu <strong>ESMFold</strong>. V roce <strong>2024 byla za tento objev udělena Nobelova cena za chemii</strong> (Demis Hassabis, John Jumper, David Baker).
         </p>
 
-        <!-- Interactive Exercise 5: 3D Protein & AlphaFold Explorer -->
+        <!-- Interactive Exercise 7: 3D Protein & AlphaFold Explorer -->
         <div class="interactive-box">
           <div class="interactive-header">
-            <span class="interactive-badge">⚡ Interaktivní cvičení 5</span>
+            <span class="interactive-badge">⚡ Interaktivní cvičení 7</span>
             <h4 style="font-size: 1.15rem; margin-bottom: 0;">3D Prohlížeč proteinů & AlphaFold DB (Mol*)</h4>
           </div>
           <p style="font-size: 0.92rem;">
-            Vyberte protein z databáze a prohlédněte si jeho 3D strukturu přímo v interaktivním Mol* okně. Můžete myší strukturu otáčet, přibližovat a měnit zobrazení.
+            Vyberte protein z databáze a prohlédněte si jeho 3D strukturu přímo v interaktivním Mol* okně. U modelů z <strong>AlphaFold DB</strong> uvidíte zbarvení podle predikované spolehlivosti (pLDDT skóre). Můžete myší strukturu libovolně otáčet a přibližovat.
           </p>
 
           <div style="margin-bottom: 1rem;">
             <label for="af-protein-select" style="font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Vyberte protein:</label>
             <select id="af-protein-select" style="padding: 0.45rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.9rem;">
-              <option value="1CRN">Crambin (PDB: 1CRN) – referenční krystalová struktura</option>
+              <option value="AF-CYP3A4" selected>Cytochrom P450 3A4 (AlphaFold DB: P08684) – klíčový jaterní enzym</option>
+              <option value="1CRN">Crambin (PDB: 1CRN) – referenční krystalová struktura (0.54 Å)</option>
               <option value="4HHB">Hemoglobin (PDB: 4HHB) – lidský kyslíkový transportér</option>
               <option value="AF-P01308">Lidský inzulín (AlphaFold DB: P01308)</option>
+              <option value="1EMA">Zelený fluorescenční protein GFP (PDB: 1EMA)</option>
               <option value="6M0J">SARS-CoV-2 Spike RBD / ACE2 receptor (PDB: 6M0J)</option>
             </select>
           </div>
 
           <div id="af-protein-desc" style="font-size: 0.88rem; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border-color);">
-            <strong>Crambin (PDB: 1CRN)</strong> (pLDDT: 96.4%) — Malý rostlinný protein krystalizovaný s ultravysokým rozlišením 0.54 Å.
+            <strong>Cytochrom P450 3A4 (AlphaFold DB: P08684)</strong> (pLDDT: 94.8%) — Nejdůležitější lidský enzym zodpovědný za metabolickou přeměnu a odbourávání více než 50 % všech klinicky užívaných léčiv v játrech.
           </div>
 
-          <div style="width: 100%; height: 420px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); background: #000000;">
-            <iframe id="molstar-iframe" src="https://molstar.org/viewer/?pdb=1crn&hide-controls=1" style="width: 100%; height: 100%; border: none;"></iframe>
+          <div style="width: 100%; height: 440px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); background: #000000;">
+            <iframe id="molstar-iframe" src="https://molstar.org/viewer/?af-id=P08684&hide-controls=1" style="width: 100%; height: 100%; border: none;"></iframe>
           </div>
         </div>
       </article>

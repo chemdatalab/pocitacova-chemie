@@ -1298,7 +1298,7 @@ function initDockingSimulator() {
 }
 
 /* ==========================================================================
-   5. ALPHAFOLD & ESMFOLD 3D PROTEIN EXPLORER
+   7. Kapitola 7: 3D Protein & AlphaFold DB Explorer (Mol*)
    ========================================================================== */
 function initAlphaFoldExplorer() {
   const proteinSelect = document.getElementById('af-protein-select');
@@ -1309,6 +1309,12 @@ function initAlphaFoldExplorer() {
   if (!proteinSelect || !iframeViewer) return;
 
   const proteinPresets = {
+    'AF-CYP3A4': {
+      name: 'Cytochrom P450 3A4 (AlphaFold DB: P08684)',
+      plddt: 94.8,
+      desc: 'Nejdůležitější lidský enzym zodpovědný za metabolickou přeměnu a odbourávání více než 50 % všech klinicky užívaných léčiv v játrech.',
+      url: 'https://molstar.org/viewer/?af-id=P08684&hide-controls=1'
+    },
     '1CRN': {
       name: 'Crambin (PDB: 1CRN)',
       plddt: 96.4,
@@ -1324,8 +1330,14 @@ function initAlphaFoldExplorer() {
     'AF-P01308': {
       name: 'Lidský inzulín (AlphaFold DB: P01308)',
       plddt: 91.2,
-      desc: 'Hormon regulující hladinu glukózy v krvi. Modelován pomocí umělé inteligence AlphaFold.',
-      url: 'https://molstar.org/viewer/?afdb=P01308&hide-controls=1'
+      desc: 'Hormon regulující hladinu glukózy v krvi. Vypočtený model AlphaFold DB s vysokou spolehlivostí predikce.',
+      url: 'https://molstar.org/viewer/?af-id=P01308&hide-controls=1'
+    },
+    '1EMA': {
+      name: 'Zelený fluorescenční protein GFP (PDB: 1EMA)',
+      plddt: 95.2,
+      desc: 'Slavný protein s beta-barelovou strukturou obsahující vnitřní fluorofor, který emituje zelené světlo. Revoluční nástroj molekulární biologie (Nobelova cena 2008).',
+      url: 'https://molstar.org/viewer/?pdb=1ema&hide-controls=1'
     },
     '6M0J': {
       name: 'SARS-CoV-2 Spike RBD / ACE2 komplex (PDB: 6M0J)',
