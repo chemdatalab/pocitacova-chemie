@@ -201,7 +201,7 @@ function initTriangleSimulator() {
 }
 
 /* ==========================================================================
-   2. KVATOVÁ CHEMIE: POTENCIÁLNÍ KŘIVKA H2 & MO ORBITALY
+   2. Kapitola 2: Potenciální křivka H2 (Morseův potenciál & LCAO)
    ========================================================================== */
 function initH2MorseSimulator() {
   const slider = document.getElementById('h2-distance-slider');
@@ -212,13 +212,13 @@ function initH2MorseSimulator() {
   if (!slider || !canvas) return;
 
   const ctx = canvas.getContext('2d');
-  const width = canvas.width = 540;
-  const height = canvas.height = 300;
+  const width = canvas.width = 620;
+  const height = canvas.height = 320;
 
   // Morse potential parameters for H2
-  const De = 4.75; // eV
-  const a = 1.94;  // Angstrom^-1
-  const re = 0.74; // Angstrom
+  const De = 4.75; // eV (disociační energie)
+  const a = 1.94;  // Angstrom^-1 (parametr šířky potenciálu)
+  const re = 0.74; // Angstrom (rovnovážná vazebná délka)
 
   function morseEnergy(r) {
     return De * Math.pow(1 - Math.exp(-a * (r - re)), 2) - De;
@@ -227,108 +227,215 @@ function initH2MorseSimulator() {
   function draw(currentR) {
     ctx.clearRect(0, 0, width, height);
 
-    // Coordinate system
-    const ox = 60;
-    const oy = 220;
-    const scaleX = 110; // pixels per Angstrom
-    const scaleY = 32;  // pixels per eV
+    // Coordinate system parameters (perfectly scaled for height 320px)
+    const ox = 70;      // Origin X in px
+    const oy = 95;      // E = 0 eV horizontal line in px
+    const scaleX = 145; // px per Angstrom
+    const scaleY = 32;  // px per eV (De=4.75 eV -> 152 px below oy -> y=247px)
+    const bottomY = 280; // X axis position
 
-    // Grid & Axes
-    ctx.strokeStyle = '#334155';
+    // Background chart gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+    bgGrad.addColorStop(0, '#090f1d');
+    bgGrad.addColorStop(1, '#050a14');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 1. Grid & Reference Lines
+    ctx.strokeStyle = '#1e293b';
     ctx.lineWidth = 1;
 
-    // Zero energy line
-    ctx.setLineDash([3, 3]);
+    // Energy grid lines (-4, -3, -2, -1, +1, +2 eV)
+    [-4, -3, -2, -1, 1, 2].forEach(eVal => {
+      const gy = oy - eVal * scaleY;
+      ctx.beginPath();
+      ctx.moveTo(ox, gy);
+      ctx.lineTo(width - 25, gy);
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${eVal > 0 ? '+' : ''}${eVal}`, ox - 8, gy + 3);
+    });
+
+    // Distance grid lines (0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5 Å)
+    [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5].forEach(rVal => {
+      const gx = ox + rVal * scaleX;
+      if (gx < width - 20) {
+        ctx.beginPath();
+        ctx.moveTo(gx, 25);
+        ctx.lineTo(gx, bottomY);
+        ctx.stroke();
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${rVal.toFixed(1)}`, gx, bottomY + 16);
+      }
+    });
+
+    // E = 0 eV (Dissociation asymptote H + H)
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 4]);
     ctx.beginPath();
     ctx.moveTo(ox, oy);
-    ctx.lineTo(width - 20, oy);
+    ctx.lineTo(width - 25, oy);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Axes
-    ctx.strokeStyle = '#64748b';
-    ctx.lineWidth = 1.5;
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('0 eV (H + H)', width - 30, oy - 6);
+
+    // 2. Axes
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
     ctx.moveTo(ox, 20);
-    ctx.lineTo(ox, height - 30);
-    ctx.moveTo(ox, height - 30);
-    ctx.lineTo(width - 20, height - 30);
+    ctx.lineTo(ox, bottomY);
+    ctx.lineTo(width - 20, bottomY);
     ctx.stroke();
 
     // Axis Labels
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '11px Inter, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '600 11px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Vzdálenost jader R (Å)', width / 2, height - 10);
+    ctx.fillText('Mezijaderná vzdálenost R (Å)', ox + (width - ox - 20) / 2, height - 10);
     
     ctx.save();
-    ctx.translate(18, height / 2);
+    ctx.translate(20, (20 + bottomY) / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText('Potenciální energie E (eV)', 0, 0);
     ctx.restore();
 
-    // Plot Morse Potential Curve
-    ctx.strokeStyle = '#00b4d8';
-    ctx.lineWidth = 2.5;
+    // 3. Shaded Potential Well
     ctx.beginPath();
-
-    for (let px = 0.35; px <= 4.0; px += 0.02) {
+    let firstPoint = true;
+    for (let px = 0.33; px <= 3.6; px += 0.02) {
       const e = morseEnergy(px);
       const cx = ox + px * scaleX;
       const cy = oy - e * scaleY;
-      if (px === 0.35) ctx.moveTo(cx, cy);
-      else ctx.lineTo(cx, cy);
+      if (firstPoint) {
+        ctx.moveTo(cx, cy);
+        firstPoint = false;
+      } else {
+        ctx.lineTo(cx, cy);
+      }
+    }
+    const endX = ox + 3.6 * scaleX;
+    ctx.lineTo(endX, oy);
+    ctx.lineTo(ox + 0.33 * scaleX, oy);
+    ctx.closePath();
+
+    const wellGrad = ctx.createLinearGradient(0, oy, 0, oy + De * scaleY);
+    wellGrad.addColorStop(0, 'rgba(0, 180, 216, 0.03)');
+    wellGrad.addColorStop(1, 'rgba(0, 180, 216, 0.22)');
+    ctx.fillStyle = wellGrad;
+    ctx.fill();
+
+    // 4. Plot Morse Potential Curve
+    ctx.strokeStyle = '#00b4d8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+
+    firstPoint = true;
+    for (let px = 0.33; px <= 3.6; px += 0.02) {
+      const e = morseEnergy(px);
+      const cx = ox + px * scaleX;
+      const cy = Math.min(Math.max(oy - e * scaleY, 15), bottomY + 15);
+      if (firstPoint) {
+        ctx.moveTo(cx, cy);
+        firstPoint = false;
+      } else {
+        ctx.lineTo(cx, cy);
+      }
     }
     ctx.stroke();
 
-    // Equilibrium marker (re = 0.74 A)
+    // 5. Equilibrium marker (re = 0.74 A, -De = -4.75 eV)
     const eqX = ox + re * scaleX;
     const eqY = oy - (-De) * scaleY;
+    
+    // Vertical line to minimum
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(eqX, bottomY);
+    ctx.lineTo(eqX, eqY);
+    ctx.lineTo(ox, eqY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Green minimum dot
     ctx.fillStyle = '#10b981';
     ctx.beginPath();
-    ctx.arc(eqX, eqY, 4.5, 0, Math.PI * 2);
+    ctx.arc(eqX, eqY, 5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillText('R_eq = 0.74 Å', eqX, eqY + 16);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
-    // Current State Point
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 10.5px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Minimum R_eq = 0.74 Å (-4.75 eV)', eqX + 50, eqY + 18);
+
+    // 6. Current State Point (interactive amber indicator)
     const curE = morseEnergy(currentR);
     const curX = ox + currentR * scaleX;
     const curY = oy - curE * scaleY;
 
     // Projection dashed lines
     ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(curX, height - 30);
+    ctx.moveTo(curX, bottomY);
     ctx.lineTo(curX, curY);
     ctx.lineTo(ox, curY);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Glow point
+    // Glow pulse point
+    const glowGrad = ctx.createRadialGradient(curX, curY, 2, curX, curY, 14);
+    glowGrad.addColorStop(0, '#f59e0b');
+    glowGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(curX, curY, 14, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
-    ctx.arc(curX, curY, 7, 0, Math.PI * 2);
+    ctx.arc(curX, curY, 6.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Render 2D Overlapping Atomic Orbitals Representation in top right corner
+    // 7. Render 2D Overlapping Atomic Orbitals Representation in top right corner
     drawOrbitalOverlap(currentR);
   }
 
   function drawOrbitalOverlap(r) {
-    const boxX = width - 170;
-    const boxY = 25;
-    const boxW = 150;
-    const boxH = 90;
+    const boxX = width - 175;
+    const boxY = 22;
+    const boxW = 155;
+    const boxH = 92;
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(11, 19, 41, 0.9)';
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+    if (ctx.roundRect) {
+      ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+    } else {
+      ctx.rect(boxX, boxY, boxW, boxH);
+    }
     ctx.fill();
     ctx.stroke();
 
@@ -339,16 +446,16 @@ function initH2MorseSimulator() {
 
     const midX = boxX + boxW / 2;
     const midY = boxY + 54;
-    const sep = Math.min(Math.max(r * 22, 16), 55);
+    const sep = Math.min(Math.max(r * 22, 14), 58);
 
     // Orbital clouds (LCAO electron density)
-    const orbRadius = 18;
+    const orbRadius = 19;
     const grad1 = ctx.createRadialGradient(midX - sep / 2, midY, 2, midX - sep / 2, midY, orbRadius);
-    grad1.addColorStop(0, 'rgba(0, 180, 216, 0.9)');
+    grad1.addColorStop(0, 'rgba(0, 180, 216, 0.85)');
     grad1.addColorStop(1, 'rgba(0, 180, 216, 0)');
 
     const grad2 = ctx.createRadialGradient(midX + sep / 2, midY, 2, midX + sep / 2, midY, orbRadius);
-    grad2.addColorStop(0, 'rgba(0, 180, 216, 0.9)');
+    grad2.addColorStop(0, 'rgba(0, 180, 216, 0.85)');
     grad2.addColorStop(1, 'rgba(0, 180, 216, 0)');
 
     ctx.fillStyle = grad1;
@@ -367,16 +474,29 @@ function initH2MorseSimulator() {
     ctx.arc(midX - sep / 2, midY, 4, 0, Math.PI * 2);
     ctx.arc(midX + sep / 2, midY, 4, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.fillText(`Překryv: ${(Math.max(0, 1 - (r - 0.74) * 0.6) * 100).toFixed(0)} %`, boxX + boxW / 2, boxY + 84);
   }
 
+  // Event listener on distance slider
   slider.addEventListener('input', (e) => {
-    const r = parseFloat(e.target.value);
-    distVal.innerText = `${r.toFixed(2)} Å`;
-    const eCalc = morseEnergy(r);
-    energyVal.innerText = `${eCalc.toFixed(2)} eV`;
-    draw(r);
+    const val = parseFloat(e.target.value);
+    distVal.innerText = `${val.toFixed(2)} Å`;
+    const energy = morseEnergy(val);
+    energyVal.innerText = `${energy > 0 ? '+' : ''}${energy.toFixed(2)} eV`;
+    if (energy < -4.5) {
+      energyVal.style.color = '#10b981'; // Near minimum
+    } else if (energy > 0) {
+      energyVal.style.color = '#ef4444'; // Repulsive
+    } else {
+      energyVal.style.color = '#f59e0b';
+    }
+    draw(val);
   });
 
+  // Initial draw
   draw(parseFloat(slider.value));
 }
 
