@@ -1,5 +1,7 @@
 # 🧪 Počítačová chemie | Přírodovědecká fakulta Univerzity Palackého v Olomouci
 
+🌐 **Živý web:** [https://chemdatalab.github.io/pocitacova-chemie/](https://chemdatalab.github.io/pocitacova-chemie/)
+
 Oficiální webová prezentace, interaktivní učebnice a studijní materiály nového bakalářského studijního programu **Počítačová chemie** na Přírodovědecké fakultě Univerzity Palackého v Olomouci (Katedra fyzikální chemie).
 
 ---
