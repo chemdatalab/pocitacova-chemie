@@ -1488,3 +1488,33 @@ a.chapter-pill:hover {
     padding: 1.75rem;
   }
 }
+
+/* Ketcher Molecular Editor Styles */
+.ketcher-tool-btn, .ketcher-atom-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+}
+
+.ketcher-tool-btn:hover, .ketcher-atom-btn:hover {
+  background: var(--bg-surface);
+  border-color: var(--up-cyan);
+  color: var(--up-cyan);
+}
+
+.ketcher-tool-btn.active, .ketcher-atom-btn.active {
+  background: var(--up-blue-light);
+  border-color: var(--up-cyan);
+  color: #040915 !important;
+}

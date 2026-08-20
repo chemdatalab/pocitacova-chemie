@@ -1955,6 +1955,205 @@ function initChemoinformaticsLab() {
     ctx.restore();
   }
 
+  let activeTool = 'bond1'; // bond1, bond2, benzene, erase
+  let activeAtom = 'C';
+  let atoms = [];
+  let bonds = [];
+  let nextId = 1;
+
+  // Ketcher Tool Buttons
+  const toolBond1 = document.getElementById('ketcher-tool-bond1');
+  const toolBond2 = document.getElementById('ketcher-tool-bond2');
+  const toolBenzene = document.getElementById('ketcher-tool-benzene');
+  const toolErase = document.getElementById('ketcher-tool-erase');
+  const toolClear = document.getElementById('ketcher-tool-clear');
+  const atomBtns = document.querySelectorAll('.ketcher-atom-btn');
+  const toolBtns = document.querySelectorAll('.ketcher-tool-btn');
+
+  function setTool(toolName) {
+    activeTool = toolName;
+    toolBtns.forEach(b => b.classList.remove('active'));
+    if (toolName === 'bond1' && toolBond1) toolBond1.classList.add('active');
+    if (toolName === 'bond2' && toolBond2) toolBond2.classList.add('active');
+    if (toolName === 'benzene' && toolBenzene) toolBenzene.classList.add('active');
+    if (toolName === 'erase' && toolErase) toolErase.classList.add('active');
+  }
+
+  if (toolBond1) toolBond1.addEventListener('click', () => setTool('bond1'));
+  if (toolBond2) toolBond2.addEventListener('click', () => setTool('bond2'));
+  if (toolBenzene) toolBenzene.addEventListener('click', () => setTool('benzene'));
+  if (toolErase) toolErase.addEventListener('click', () => setTool('erase'));
+
+  if (toolClear) {
+    toolClear.addEventListener('click', () => {
+      atoms = [];
+      bonds = [];
+      smilesInput.value = '';
+      const mol = parseAndComputeSMILES('');
+      updateUI(mol);
+    });
+  }
+
+  atomBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      atomBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeAtom = btn.getAttribute('data-atom') || 'C';
+      if (activeTool === 'erase') setTool('bond1');
+    });
+  });
+
+  // Canvas Click: Interactive Chemical Sketcher
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const cy = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+    // Find nearest atom within 18px
+    let nearest = null;
+    let minDist = 22;
+    atoms.forEach(a => {
+      const d = Math.hypot(a.x - cx, a.y - cy);
+      if (d < minDist) {
+        minDist = d;
+        nearest = a;
+      }
+    });
+
+    if (activeTool === 'erase') {
+      if (nearest) {
+        atoms = atoms.filter(a => a.id !== nearest.id);
+        bonds = bonds.filter(b => b.from !== nearest.id && b.to !== nearest.id);
+        recalcFromGraph();
+      }
+      return;
+    }
+
+    if (activeTool === 'benzene') {
+      // Stamp 6-membered ring
+      const r = 26;
+      const baseId = nextId;
+      const ringAtoms = [];
+      for (let i = 0; i < 6; i++) {
+        const ang = (i * Math.PI) / 3;
+        const ax = cx + r * Math.cos(ang);
+        const ay = cy + r * Math.sin(ang);
+        const atom = { id: nextId++, x: ax, y: ay, symbol: 'c' };
+        atoms.push(atom);
+        ringAtoms.push(atom);
+      }
+      for (let i = 0; i < 6; i++) {
+        bonds.push({
+          from: ringAtoms[i].id,
+          to: ringAtoms[(i + 1) % 6].id,
+          order: i % 2 === 0 ? 2 : 1
+        });
+      }
+      if (nearest) {
+        bonds.push({ from: nearest.id, to: ringAtoms[0].id, order: 1 });
+      }
+      recalcFromGraph();
+      return;
+    }
+
+    if (nearest) {
+      // Add a new branch atom from clicked atom
+      const angle = (bonds.filter(b => b.from === nearest.id || b.to === nearest.id).length * 1.2) - 0.6;
+      const nx = Math.min(Math.max(nearest.x + 28 * Math.cos(angle), 20), width - 20);
+      const ny = Math.min(Math.max(nearest.y + 28 * Math.sin(angle), 20), height - 20);
+      const newAtom = { id: nextId++, x: nx, y: ny, symbol: activeAtom };
+      atoms.push(newAtom);
+      bonds.push({ from: nearest.id, to: newAtom.id, order: activeTool === 'bond2' ? 2 : 1 });
+    } else {
+      // Create new disconnected atom
+      const newAtom = { id: nextId++, x: cx, y: cy, symbol: activeAtom };
+      atoms.push(newAtom);
+    }
+
+    recalcFromGraph();
+  });
+
+  function recalcFromGraph() {
+    if (atoms.length === 0) {
+      smilesInput.value = '';
+      const mol = parseAndComputeSMILES('');
+      updateUI(mol);
+      return;
+    }
+
+    // Build simplified SMILES string from graph
+    let builtSmiles = '';
+    const hasArom = atoms.some(a => a.symbol === 'c');
+    if (hasArom) builtSmiles += 'c1ccccc1';
+
+    const hetero = atoms.filter(a => a.symbol !== 'c' && a.symbol !== 'C');
+    hetero.forEach(h => {
+      builtSmiles += (h.symbol === 'O' ? '(=O)O' : (h.symbol === 'N' ? 'N' : h.symbol));
+    });
+
+    const carbons = atoms.filter(a => a.symbol === 'C');
+    if (!hasArom && carbons.length > 0) {
+      builtSmiles = 'C'.repeat(carbons.length) + builtSmiles;
+    }
+    if (!builtSmiles) builtSmiles = 'C';
+
+    smilesInput.value = builtSmiles;
+    const mol = parseAndComputeSMILES(builtSmiles);
+    mol.name = 'Uživatelem nakreslená molekula (Ketcher)';
+    mol.draw = (ctx) => drawCustomGraph(ctx);
+    updateUI(mol);
+  }
+
+  function drawCustomGraph(ctx) {
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw Bonds
+    bonds.forEach(b => {
+      const a1 = atoms.find(a => a.id === b.from);
+      const a2 = atoms.find(a => a.id === b.to);
+      if (a1 && a2) {
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(a1.x, a1.y);
+        ctx.lineTo(a2.x, a2.y);
+        ctx.stroke();
+
+        if (b.order === 2) {
+          const dx = a2.x - a1.x;
+          const dy = a2.y - a1.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const ox = (-dy / len) * 3.5;
+          const oy = (dx / len) * 3.5;
+          ctx.beginPath();
+          ctx.moveTo(a1.x + ox, a1.y + oy);
+          ctx.lineTo(a2.x + ox, a2.y + oy);
+          ctx.stroke();
+        }
+      }
+    });
+
+    // Draw Atoms
+    atoms.forEach(a => {
+      const colorMap = {
+        'C': '#94a3b8', 'c': '#38bdf8', 'N': '#38bdf8', 'n': '#38bdf8',
+        'O': '#ef4444', 'S': '#eab308', 'Cl': '#22c55e', 'F': '#06b6d4'
+      };
+      const col = colorMap[a.symbol] || '#f8fafc';
+
+      ctx.fillStyle = '#060b17';
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = col;
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(a.symbol.toUpperCase(), a.x, a.y);
+    });
+  }
+
   // --- Event Listeners ---
   presetBtns.forEach(btn => {
     btn.addEventListener('click', () => {
