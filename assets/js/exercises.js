@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   initTriangleSimulator();
   initH2MorseSimulator();
+  initPESOptimizationSimulator();
   initVibrationalIRSimulator();
   initDockingSimulator();
   initAlphaFoldExplorer();
@@ -498,6 +499,372 @@ function initH2MorseSimulator() {
 
   // Initial draw
   draw(parseFloat(slider.value));
+}
+
+/* ==========================================================================
+   2B. Kapitola 2: Optimalizace geometrie na ploše PES
+   ========================================================================== */
+function initPESOptimizationSimulator() {
+  const canvas = document.getElementById('pes-canvas');
+  if (!canvas) return;
+
+  const algoSelect = document.getElementById('opt-algo-select');
+  const startBtn = document.getElementById('opt-start-btn');
+  const stepBtn = document.getElementById('opt-step-btn');
+  const resetBtn = document.getElementById('opt-reset-btn');
+  const iterVal = document.getElementById('opt-iter-val');
+  const energyVal = document.getElementById('opt-energy-val');
+  const gradVal = document.getElementById('opt-grad-val');
+  const statusBadge = document.getElementById('opt-status-badge');
+  const algoDesc = document.getElementById('opt-algo-desc');
+
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width = 460;
+  const height = canvas.height = 340;
+
+  // Domain bounding box on PES
+  const xMin = -2.2, xMax = 2.4;
+  const yMin = -1.2, yMax = 2.8;
+
+  function toCanvas(x, y) {
+    const cx = ((x - xMin) / (xMax - xMin)) * width;
+    const cy = height - ((y - yMin) / (yMax - yMin)) * height;
+    return { cx, cy };
+  }
+
+  function fromCanvas(cx, cy) {
+    const x = xMin + (cx / width) * (xMax - xMin);
+    const y = yMin + ((height - cy) / height) * (yMax - yMin);
+    return { x, y };
+  }
+
+  // 2D Rosenbrock-like curved potential energy surface E(x, y)
+  // Global Minimum at (0.7, 0.19) where E = 0 kcal/mol
+  const minX = 0.7, minY = 0.19;
+
+  function energy(x, y) {
+    const term1 = 1.2 * Math.pow(x - minX, 2);
+    const term2 = 3.2 * Math.pow(y - Math.pow(x, 2) + 0.3, 2);
+    return term1 + term2;
+  }
+
+  function gradient(x, y) {
+    const gx = 2.4 * (x - minX) - 12.8 * x * (y - Math.pow(x, 2) + 0.3);
+    const gy = 6.4 * (y - Math.pow(x, 2) + 0.3);
+    return { gx, gy, norm: Math.sqrt(gx * gx + gy * gy) };
+  }
+
+  function hessian(x, y) {
+    const hxx = 2.4 - 12.8 * (y - Math.pow(x, 2) + 0.3) + 25.6 * x * x;
+    const hyy = 6.4;
+    const hxy = -12.8 * x;
+    return { hxx, hyy, hxy };
+  }
+
+  // Optimization State
+  let startPt = { x: -1.4, y: 2.3 };
+  let currentPt = { ...startPt };
+  let path = [];
+  let isRunning = false;
+  let animTimer = null;
+  let cgDirection = null;
+  let prevGrad = null;
+  let velocity = { vx: 0, vy: 0 };
+  let iteration = 0;
+
+  // Algorithm explanations
+  const algoExplanations = {
+    'steepest': '<strong>Nejprudší spád (Steepest Descent):</strong> V každém kroku jde přímo proti gradientu (−∇<i>E</i>). V úzkých zakřivených údolích má tendenci prudce oscilovat (klikatit se) a konverguje pomalu.',
+    'cg': '<strong>Sdružené gradienty (Conjugate Gradient):</strong> Pamatuje si předchozí směr sestupu a volí ortogonální směr. V zakřivených údolích neosciluje a dosáhne minima výrazně rychleji.',
+    'bfgs': '<strong>Kvazi-Newton (BFGS):</strong> Využívá aproximaci druhé derivace (Hessiánu). Zná zakřivení terénu a přímo „skáče“ k minimu parabolickou extrapolací. Standard v kvantové chemii (ORCA, Gaussian).',
+    'momentum': '<strong>Gradient s momentem (Heavy Ball):</strong> Využívá setrvačnost k překonání drobných lokálních překážek a zrychlení pohybu podél plochého dna údolí.'
+  };
+
+  function resetState(newStart) {
+    if (isRunning) stopOptimization();
+    if (newStart) startPt = { ...newStart };
+    currentPt = { ...startPt };
+    const e = energy(currentPt.x, currentPt.y);
+    const g = gradient(currentPt.x, currentPt.y);
+    path = [{ ...currentPt, e, grad: g.norm }];
+    iteration = 0;
+    cgDirection = null;
+    prevGrad = null;
+    velocity = { vx: 0, vy: 0 };
+    updateDashboard(e, g.norm, '⚪ Připraveno ke spuštění');
+    render();
+  }
+
+  function doStep() {
+    const algo = algoSelect ? algoSelect.value : 'cg';
+    const g = gradient(currentPt.x, currentPt.y);
+
+    // Convergence criteria: RMS gradient < 0.08 or max iterations
+    if (g.norm < 0.08 || iteration >= 60) {
+      const e = energy(currentPt.x, currentPt.y);
+      updateDashboard(e, g.norm, '🟢 Konvergováno: Minimum nalezeno!');
+      stopOptimization();
+      render();
+      return false;
+    }
+
+    iteration++;
+    let nextX = currentPt.x;
+    let nextY = currentPt.y;
+
+    if (algo === 'steepest') {
+      const alpha = 0.035;
+      nextX = currentPt.x - alpha * g.gx;
+      nextY = currentPt.y - alpha * g.gy;
+    } else if (algo === 'cg') {
+      if (!cgDirection || !prevGrad) {
+        cgDirection = { dx: -g.gx, dy: -g.gy };
+      } else {
+        const prevNormSq = Math.max(prevGrad.gx * prevGrad.gx + prevGrad.gy * prevGrad.gy, 1e-8);
+        const yx = g.gx - prevGrad.gx;
+        const yy = g.gy - prevGrad.gy;
+        // Polak-Ribiere formula with restart
+        let beta = (g.gx * yx + g.gy * yy) / prevNormSq;
+        if (beta < 0) beta = 0;
+        cgDirection = {
+          dx: -g.gx + beta * cgDirection.dx,
+          dy: -g.gy + beta * cgDirection.dy
+        };
+      }
+      prevGrad = { gx: g.gx, gy: g.gy };
+      const alpha = 0.032;
+      nextX = currentPt.x + alpha * cgDirection.dx;
+      nextY = currentPt.y + alpha * cgDirection.dy;
+    } else if (algo === 'bfgs') {
+      // Analytical Newton-Raphson / Damped Quasi-Newton step: Delta x = - H^-1 * g
+      const H = hessian(currentPt.x, currentPt.y);
+      const det = H.hxx * H.hyy - H.hxy * H.hxy;
+      if (Math.abs(det) > 1e-5) {
+        const invHxx = H.hyy / det;
+        const invHyy = H.hxx / det;
+        const invHxy = -H.hxy / det;
+        const dx = -(invHxx * g.gx + invHxy * g.gy);
+        const dy = -(invHxy * g.gx + invHyy * g.gy);
+        const stepMax = 0.45;
+        const stepNorm = Math.sqrt(dx * dx + dy * dy);
+        const scale = stepNorm > stepMax ? stepMax / stepNorm : 1.0;
+        nextX = currentPt.x + dx * scale * 0.85;
+        nextY = currentPt.y + dy * scale * 0.85;
+      } else {
+        nextX = currentPt.x - 0.04 * g.gx;
+        nextY = currentPt.y - 0.04 * g.gy;
+      }
+    } else if (algo === 'momentum') {
+      const momentumCoeff = 0.72;
+      const alpha = 0.022;
+      velocity.vx = momentumCoeff * velocity.vx - alpha * g.gx;
+      velocity.vy = momentumCoeff * velocity.vy - alpha * g.gy;
+      nextX = currentPt.x + velocity.vx;
+      nextY = currentPt.y + velocity.vy;
+    }
+
+    currentPt = { x: nextX, y: nextY };
+    const e = energy(currentPt.x, currentPt.y);
+    const newG = gradient(currentPt.x, currentPt.y);
+    path.push({ ...currentPt, e, grad: newG.norm });
+
+    updateDashboard(e, newG.norm, '🟡 Optimalizace probíhá...');
+    render();
+    return true;
+  }
+
+  function startOptimization() {
+    if (isRunning) return;
+    isRunning = true;
+    if (startBtn) startBtn.innerText = '⏸️ Pozastavit';
+    animTimer = setInterval(() => {
+      const cont = doStep();
+      if (!cont) stopOptimization();
+    }, 110);
+  }
+
+  function stopOptimization() {
+    isRunning = false;
+    if (animTimer) clearInterval(animTimer);
+    animTimer = null;
+    if (startBtn) startBtn.innerText = '▶️ Spustit optimalizaci';
+  }
+
+  function updateDashboard(e, gNorm, statusText) {
+    if (iterVal) iterVal.innerText = `${iteration}`;
+    if (energyVal) energyVal.innerText = `${e.toFixed(3)} kcal/mol`;
+    if (gradVal) gradVal.innerText = `${gNorm.toFixed(3)}`;
+    if (statusBadge) {
+      statusBadge.innerText = statusText;
+      if (statusText.includes('Konvergováno')) {
+        statusBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+        statusBadge.style.color = '#10b981';
+        statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      } else if (statusText.includes('probíhá')) {
+        statusBadge.style.background = 'rgba(245, 158, 11, 0.2)';
+        statusBadge.style.color = '#f59e0b';
+        statusBadge.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+      } else {
+        statusBadge.style.background = 'rgba(255, 255, 255, 0.08)';
+        statusBadge.style.color = '#94a3b8';
+        statusBadge.style.borderColor = 'var(--border-color)';
+      }
+    }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, width, height);
+
+    // 1. Draw 2D PES Contour Background
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+    bgGrad.addColorStop(0, '#060b17');
+    bgGrad.addColorStop(1, '#02050b');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Render isocontour lines
+    const contourLevels = [0.2, 0.6, 1.2, 2.2, 3.8, 6.0, 9.5, 14.0, 20.0, 30.0];
+    const gridRes = 35;
+    const dx = width / gridRes;
+    const dy = height / gridRes;
+
+    // Draw subtle contour bands
+    ctx.lineWidth = 1;
+    contourLevels.forEach((level, idx) => {
+      const alpha = 0.25 - idx * 0.018;
+      ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+      ctx.beginPath();
+
+      for (let i = 0; i <= gridRes; i++) {
+        for (let j = 0; j <= gridRes; j++) {
+          const pt = fromCanvas(i * dx, j * dy);
+          const e = energy(pt.x, pt.y);
+          if (Math.abs(e - level) < 0.45) {
+            ctx.fillStyle = `rgba(56, 189, 248, ${alpha * 0.8})`;
+            ctx.fillRect(i * dx - 1, j * dy - 1, 2.5, 2.5);
+          }
+        }
+      }
+      ctx.stroke();
+    });
+
+    // 2. Global Minimum Target (0.7, 0.19)
+    const minCanvas = toCanvas(minX, minY);
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(minCanvas.cx, minCanvas.cy, 16, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Green minimum star/cross
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(minCanvas.cx, minCanvas.cy, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Minimum (0 kcal/mol)', minCanvas.cx + 54, minCanvas.cy + 4);
+
+    // 3. Draw Optimization Path
+    if (path.length > 1) {
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      const p0 = toCanvas(path[0].x, path[0].y);
+      ctx.moveTo(p0.cx, p0.cy);
+
+      for (let i = 1; i < path.length; i++) {
+        const pt = toCanvas(path[i].x, path[i].y);
+        ctx.lineTo(pt.cx, pt.cy);
+      }
+      ctx.stroke();
+
+      // Path node markers
+      path.forEach((p, idx) => {
+        const pt = toCanvas(p.x, p.y);
+        ctx.fillStyle = idx === 0 ? '#38bdf8' : (idx === path.length - 1 ? '#f59e0b' : 'rgba(245, 158, 11, 0.7)');
+        ctx.beginPath();
+        ctx.arc(pt.cx, pt.cy, idx === 0 || idx === path.length - 1 ? 5.5 : 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 4. Current Point Head & Pulse
+    const curCanvas = toCanvas(currentPt.x, currentPt.y);
+    const pulseGrad = ctx.createRadialGradient(curCanvas.cx, curCanvas.cy, 2, curCanvas.cx, curCanvas.cy, 16);
+    pulseGrad.addColorStop(0, '#f59e0b');
+    pulseGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+    ctx.fillStyle = pulseGrad;
+    ctx.beginPath();
+    ctx.arc(curCanvas.cx, curCanvas.cy, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(curCanvas.cx, curCanvas.cy, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 5. Instruction banner in corner
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.fillRect(8, 8, 175, 22);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('🖱️ Klikněte pro nový výchozí bod', 14, 22);
+  }
+
+  // Canvas click listener to place initial geometry
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const cy = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const pt = fromCanvas(cx, cy);
+    resetState(pt);
+  });
+
+  // Algorithm change
+  if (algoSelect) {
+    algoSelect.addEventListener('change', () => {
+      if (algoDesc && algoExplanations[algoSelect.value]) {
+        algoDesc.innerHTML = algoExplanations[algoSelect.value];
+      }
+      resetState();
+    });
+  }
+
+  // Button Listeners
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      if (isRunning) stopOptimization();
+      else startOptimization();
+    });
+  }
+
+  if (stepBtn) {
+    stepBtn.addEventListener('click', () => {
+      stopOptimization();
+      doStep();
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      resetState();
+    });
+  }
+
+  // Initialize
+  resetState();
 }
 
 /* ==========================================================================

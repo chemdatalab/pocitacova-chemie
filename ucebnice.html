@@ -227,10 +227,90 @@
           </a>
         </div>
 
-        <h3 style="font-size: 1.35rem; margin: 1.75rem 0 0.75rem 0;">Iterativní optimalizace geometrie</h3>
+        <h3 style="font-size: 1.35rem; margin: 2rem 0 0.75rem 0; color: var(--up-blue-light);">Iterativní optimalizace geometrie molekuly</h3>
         <p>
-          Při hledání stabilního tvaru molekuly výpočetní program střídavě optimalizuje elektronovou konfiguraci a posouvá polohy jader v prostoru, dokud energie molekuly nedosáhne minima (konvergence).
+          Když v počítači sestavíme model molekuly, počáteční polohy atomů obvykle neodpovídají skutečnému rovnovážnému stavu – vazby mohou být příliš natažené nebo atomy nepřirozeně blízko u sebe. Cílem <strong>optimalizace geometrie</strong> je nalézt takové prostorové uspořádání jader, které má <strong>nejnižší možnou energii</strong> (tzv. energetické minimum).
         </p>
+
+        <p>
+          Podle <strong>Bornovy–Oppenheimerovy aproximace</strong> jsou těžká atomová jádra vůči lehkým elektronům v podstatě nehybná. Pro každou pevnou pozici jader nejprve vyřešíme elektronovou strukturu (kvantový SCF cyklus) a získáme celkovou energii systému. Závislost energie na souřadnicích všech atomů tvoří vícerozměrnou <strong>plochu potenciální energie (PES – Potential Energy Surface)</strong>, po které se při optimalizaci pohybujeme jako v kopcovité krajině.
+        </p>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin: 1.25rem 0;">
+          <h4 style="font-size: 1.05rem; color: var(--up-cyan); margin-bottom: 0.5rem;">🔁 Cyklus optimalizace probíhá ve čtyřech krocích:</h4>
+          <ol style="margin-left: 1.5rem; margin-bottom: 0; color: var(--text-muted); font-size: 0.92rem; display: flex; flex-direction: column; gap: 0.35rem;">
+            <li><strong>Výpočet energie (SCF):</strong> Vyřešení Schrödingerovy rovnice pro aktuální polohy jader.</li>
+            <li><strong>Výpočet sil (gradientu ∇<i>E</i>):</strong> Zjištění sil <i>F<sub>i</sub></i> = −∇<i><sub>i</sub>E</i> působících na jednotlivé atomy (směr největšího růstu/poklesu energie).</li>
+            <li><strong>Posun jader:</strong> Optimalizační algoritmus posune atomy ve směru klesající energie.</li>
+            <li><strong>Test konvergence:</strong> Pokud jsou síly i změna energie menší než zadaná tolerance (|∇<i>E</i>| &lt; ε), geometrie <strong>konvergovala</strong> a máme stabilní molekulu! V opačném případě se cyklus opakuje.</li>
+          </ol>
+        </div>
+
+        <!-- Interactive Exercise 2B: Geometry Optimization on PES -->
+        <div class="interactive-box" style="margin-top: 2rem;">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 2B</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Optimalizace geometrie a hledání minima na ploše PES</h4>
+          </div>
+          <p style="font-size: 0.92rem;">
+            Klikněte kamkoliv do vrstevnicové mapy energie a zvolte optimalizační algoritmus. Sledujte, jak se algoritmus propracovává údolím k minimu (červený křížek) a jak se liší trajektorie <strong>Nejprudšího spádu</strong>, <strong>Sdružených gradientů</strong> a metody <strong>BFGS</strong>.
+          </p>
+
+          <!-- Controls -->
+          <div class="sim-controls" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <label for="opt-algo-select" style="font-size: 0.9rem; font-weight: 600;">Algoritmus:</label>
+              <select id="opt-algo-select" style="padding: 0.45rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.9rem; font-weight: 600;">
+                <option value="steepest">Nejprudší spád (Steepest Descent)</option>
+                <option value="cg" selected>Sdružené gradienty (Conjugate Gradient)</option>
+                <option value="bfgs">Kvazi-Newton (BFGS / Hessián)</option>
+                <option value="momentum">Gradient s momentem (Momentum)</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button id="opt-start-btn" class="btn btn-primary btn-sm">▶️ Spustit optimalizaci</button>
+              <button id="opt-step-btn" class="btn btn-secondary btn-sm">⏭️ Krok</button>
+              <button id="opt-reset-btn" class="btn btn-outline btn-sm">🔄 Reset</button>
+            </div>
+          </div>
+
+          <!-- PES Canvas & Metrics Dashboard -->
+          <div style="display: grid; grid-template-columns: 1fr 220px; gap: 1rem; margin-top: 1rem;">
+            <div>
+              <canvas id="pes-canvas" class="sim-canvas" style="height: 340px; cursor: crosshair;"></canvas>
+            </div>
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.84rem;">
+              <div>
+                <div style="font-weight: 700; color: var(--up-cyan); margin-bottom: 0.65rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.35rem;">
+                  📊 Průběh konvergence
+                </div>
+                <div style="margin-bottom: 0.5rem;">
+                  <span style="color: var(--text-subtle);">Iterace:</span><br>
+                  <strong id="opt-iter-val" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--text-main);">0</strong>
+                </div>
+                <div style="margin-bottom: 0.5rem;">
+                  <span style="color: var(--text-subtle);">Energie <i>E</i>:</span><br>
+                  <strong id="opt-energy-val" style="font-family: var(--font-mono); font-size: 1rem; color: #38bdf8;">-- kcal/mol</strong>
+                </div>
+                <div style="margin-bottom: 0.5rem;">
+                  <span style="color: var(--text-subtle);">Síla |∇<i>E</i>| (RMS gradient):</span><br>
+                  <strong id="opt-grad-val" style="font-family: var(--font-mono); font-size: 0.95rem; color: #f59e0b;">--</strong>
+                </div>
+              </div>
+
+              <div>
+                <div id="opt-status-badge" style="padding: 0.4rem 0.6rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.78rem; text-align: center; background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid var(--border-color);">
+                  ⚪ Klikněte do mapy pro start
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="opt-algo-desc" style="font-size: 0.84rem; color: #94a3b8; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-top: 0.75rem; border-left: 3px solid var(--up-cyan);">
+            <strong>Sdružené gradienty (CG):</strong> Využívá informaci z předchozího kroku k volbě ortogonálního směru. V zakřivených údolích netrpí křížovými oscilacemi jako nejprudší spád a k minimu dorazí mnohem rychleji.
+          </div>
+        </div>
       </article>
 
       <!-- Kapitola 3 -->
