@@ -19,3 +19,7 @@ extracted_accreditation_text.txt
 extracted_ucebnice_clean.txt
 extracted_ucebnice_sample.txt
 full_ucebnice_parsed.txt
+scratch/
+
+# Local raw source documents (not for public repo)
+sources/
