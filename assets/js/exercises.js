@@ -1426,10 +1426,10 @@ function initChemoinformaticsLab() {
 
   if (!svgEl || !smilesInput) return;
 
-  // Initialize SmilesDrawer.SvgDrawer if available
-  let svgDrawer = null;
-  if (typeof SmilesDrawer !== 'undefined' && SmilesDrawer.SvgDrawer) {
-    svgDrawer = new SmilesDrawer.SvgDrawer({
+  // Initialize SmiDrawer (SmilesDrawer 2D engine)
+  let smiDrawer = null;
+  if (typeof SmiDrawer !== 'undefined') {
+    smiDrawer = new SmiDrawer({
       width: 300,
       height: 210,
       bondThickness: 2.0,
@@ -1455,6 +1455,17 @@ function initChemoinformaticsLab() {
           BACKGROUND: '#060b17'
         }
       }
+    });
+  } else if (typeof SmilesDrawer !== 'undefined' && SmilesDrawer.SmiDrawer) {
+    smiDrawer = new SmilesDrawer.SmiDrawer({
+      width: 300,
+      height: 210,
+      bondThickness: 2.0,
+      bondLength: 20,
+      shortBondLength: 0.85,
+      bondSpacing: 0.18,
+      isDark: true,
+      compactDrawing: false
     });
   }
 
@@ -1632,17 +1643,16 @@ function initChemoinformaticsLab() {
       return;
     }
 
-    if (svgDrawer && typeof SmilesDrawer !== 'undefined') {
+    if (smiDrawer) {
       try {
-        SmilesDrawer.parse(smiles, function (tree) {
-          svgEl.innerHTML = '';
-          svgDrawer.draw(tree, 'cheminf-svg', 'dark', false);
-        }, function (err) {
+        smiDrawer.draw(smiles, svgEl, 'dark', () => {
+          // Successful draw
+        }, (err) => {
           console.warn('SmilesDrawer error for smiles:', smiles, err);
           renderSvgFallback(svgEl, smiles);
         });
       } catch (e) {
-        console.warn('SmilesDrawer parse exception:', e);
+        console.warn('SmilesDrawer exception:', e);
         renderSvgFallback(svgEl, smiles);
       }
     } else {
