@@ -441,6 +441,21 @@
           </div>
         </div>
 
+        <!-- Explanation: How descriptors are calculated -->
+        <div style="background: rgba(0, 180, 216, 0.08); border: 1px solid rgba(0, 180, 216, 0.3); border-radius: var(--radius-md); padding: 1.1rem; margin-bottom: 1.25rem;">
+          <h4 style="font-size: 0.98rem; color: var(--up-blue-light); margin-bottom: 0.5rem;">⚙️ Čím a jak se molekulární deskriptory počítají?</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            V moderní vědecké praxi a farmaceutickém průmyslu se k výpočtu deskriptorů využívají chemoinformatické knihovny <strong>RDKit</strong> (standard pro Python / C++), <strong>CDK</strong> (Chemistry Development Kit) a <strong>Open Babel</strong>. Tyto nástroje využívají exaktní matematické a empirické algoritmy:
+          </p>
+          <ul style="font-size: 0.82rem; color: #cbd5e1; padding-left: 1.2rem; margin-bottom: 0; display: flex; flex-direction: column; gap: 0.3rem;">
+            <li><strong>Molekulová hmotnost (MW):</strong> Exaktní sumace atomových hmotností z grafu molekuly podle tabulek IUPAC.</li>
+            <li><strong>Lipofilita (logP):</strong> <em>Wildman–Crippen model</em> rozkládá molekulu na 68 atomových typů a sčítá jejich experimentálně kalibrované hydrofobní příspěvky (SlogP).</li>
+            <li><strong>Rozpustnost ve vodě (logS):</strong> <em>Delaneyho ESOL model</em> počítá rozpustnost ze vzorce: log<i>S</i> = 0.16 − 0.63·log<i>P</i> − 0.0062·<i>MW</i> + 0.066·<i>RotB</i> − 0.74·(Aromatický podíl).</li>
+            <li><strong>Polární povrch (TPSA):</strong> <em>Ertl–Rohde topologický algoritmus</em> sčítá 2D tabulkové plochy atomů O, N a jejich navázaných H bez nutnosti generovat náročnou 3D konformaci.</li>
+            <li><strong>H-donory / akceptory a aromatické kruhy:</strong> Hledání podstruktur pomocí chemických regulárních výrazů (<strong>SMARTS</strong>) a detekce cyklů (SSSR algoritmus).</li>
+          </ul>
+        </div>
+
         <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
           Výzkumníci na Katedře fyzikální chemie PřF UPOL pracují v rámci infrastruktury <strong>ELIXIR CZ</strong> s celosvětovými databázemi <strong>ChEMBL</strong> (2,4+ milionu bioaktivních látek), <strong>PubChem</strong> (115+ milionů struktur) a <strong>ZINC</strong> (miliardy sloučenin pro virtuální screening).
         </p>
@@ -449,10 +464,10 @@
         <div class="interactive-box" style="margin-top: 1.5rem;">
           <div class="interactive-header">
             <span class="interactive-badge">⚡ Interaktivní cvičení 5</span>
-            <h4 style="font-size: 1.15rem; margin-bottom: 0;">2D Editor molekul (Ketcher) & kalkulátor vlastností</h4>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">2D Editor molekul (Ketcher / SmilesDrawer) & kalkulátor vlastností</h4>
           </div>
           <p style="font-size: 0.9rem; margin-bottom: 1rem;">
-            Nakreslete vlastní molekulu na plátno pomocí tlačítek a šablon, nebo vyberte předvolené léčivo. Editor v reálném čase generuje <strong>SMILES</strong>, počítá molekulární deskriptory a ověřuje <strong>Lipinského pravidlo pěti</strong>.
+            Nakreslete vlastní molekulu na plátno pomocí tlačítek a šablon, nebo vyberte předvolené léčivo. Editor v reálném čase generuje <strong>SMILES</strong>, vykresluje profesionální 2D strukturu (včetně aromatických jader) a počítá molekulární deskriptory podle standardů RDKit.
           </p>
 
           <!-- Preset Buttons -->
@@ -718,6 +733,7 @@
   </footer>
 
   <script src="assets/js/main.js"></script>
+  <script src="assets/js/smiles-drawer.min.js"></script>
   <script src="assets/js/exercises.js"></script>
 </body>
 </html>

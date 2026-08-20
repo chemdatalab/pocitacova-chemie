@@ -1427,8 +1427,41 @@ function initChemoinformaticsLab() {
   if (!canvas || !smilesInput) return;
 
   const ctx = canvas.getContext('2d');
-  const width = canvas.width = 240;
-  const height = canvas.height = 200;
+  const width = canvas.width = 300;
+  const height = canvas.height = 210;
+
+  // Initialize SmilesDrawer if available
+  let drawer = null;
+  if (typeof SmilesDrawer !== 'undefined') {
+    drawer = new SmilesDrawer.Drawer({
+      width: 300,
+      height: 210,
+      bondThickness: 2.0,
+      bondLength: 20,
+      shortBondLength: 0.82,
+      bondSpacing: 0.18,
+      atomVisualization: 'default',
+      isomeric: true,
+      compactDrawing: false,
+      themes: {
+        dark: {
+          C: '#cbd5e1',
+          O: '#ef4444',
+          N: '#38bdf8',
+          F: '#06b6d4',
+          CL: '#22c55e',
+          BR: '#a855f7',
+          I: '#ec4899',
+          P: '#f97316',
+          S: '#eab308',
+          B: '#f43f5e',
+          SI: '#64748b',
+          H: '#ffffff',
+          BACKGROUND: '#060b17'
+        }
+      }
+    });
+  }
 
   // Preset Molecules Database
   const presets = {
@@ -1443,8 +1476,7 @@ function initChemoinformaticsLab() {
       tpsa: 63.6,
       rotb: 3,
       aroma: 1,
-      heavy: 13,
-      draw: (ctx) => drawAspirin(ctx)
+      heavy: 13
     },
     'Cn1cnc2c1c(=O)n(c(=O)n2C)C': {
       name: 'Kofein (1,3,7-trimethylxanthin)',
@@ -1457,11 +1489,10 @@ function initChemoinformaticsLab() {
       tpsa: 58.4,
       rotb: 0,
       aroma: 2,
-      heavy: 14,
-      draw: (ctx) => drawCaffeine(ctx)
+      heavy: 14
     },
     'CC(C)Cc1ccc(cc1)C(C)C(=O)O': {
-      name: 'Ibuprofen',
+      name: 'Ibuprofen (s aromatickým benzenovým jádrem)',
       formula: 'C₁₃H₁₈O₂',
       mw: 206.28,
       logp: 3.50,
@@ -1471,11 +1502,10 @@ function initChemoinformaticsLab() {
       tpsa: 37.3,
       rotb: 4,
       aroma: 1,
-      heavy: 15,
-      draw: (ctx) => drawIbuprofen(ctx)
+      heavy: 15
     },
     'CC(=O)Nc1ccc(O)cc1': {
-      name: 'Paracetamol (Acetaminofen)',
+      name: 'Paracetamol (Acetaminofen – fenolický kruh)',
       formula: 'C₈H₉NO₂',
       mw: 151.16,
       logp: 0.91,
@@ -1485,11 +1515,10 @@ function initChemoinformaticsLab() {
       tpsa: 49.3,
       rotb: 1,
       aroma: 1,
-      heavy: 11,
-      draw: (ctx) => drawParacetamol(ctx)
+      heavy: 11
     },
     'CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O': {
-      name: 'Morfin',
+      name: 'Morfin (polycyklický alkaloid)',
       formula: 'C₁₇H₁₉NO₃',
       mw: 285.34,
       logp: 0.89,
@@ -1499,11 +1528,10 @@ function initChemoinformaticsLab() {
       tpsa: 49.8,
       rotb: 0,
       aroma: 1,
-      heavy: 21,
-      draw: (ctx) => drawMorphine(ctx)
+      heavy: 21
     },
     'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O': {
-      name: 'D-Glukóza',
+      name: 'D-Glukóza (pyranózový cyklus)',
       formula: 'C₆H₁₂O₆',
       mw: 180.16,
       logp: -3.24,
@@ -1513,53 +1541,65 @@ function initChemoinformaticsLab() {
       tpsa: 110.4,
       rotb: 1,
       aroma: 0,
-      heavy: 12,
-      draw: (ctx) => drawGlucose(ctx)
+      heavy: 12
     }
   };
 
   function parseAndComputeSMILES(smiles) {
-    // Check if preset exists
-    const cleanSmiles = smiles.trim();
+    const cleanSmiles = (smiles || '').trim();
     if (presets[cleanSmiles]) {
-      return presets[cleanSmiles];
+      return { ...presets[cleanSmiles], smiles: cleanSmiles };
     }
 
-    // Heuristic SMILES descriptor parser
-    let carbon = (smiles.match(/[C]/g) || []).length + (smiles.match(/[c]/g) || []).length;
-    let nitrogen = (smiles.match(/[Nn]/g) || []).length;
-    let oxygen = (smiles.match(/[Oo]/g) || []).length;
-    let sulfur = (smiles.match(/[Ss]/g) || []).length;
-    let fluorine = (smiles.match(/[F]/g) || []).length;
-    let chlorine = (smiles.match(/Cl/g) || []).length;
-    let bromine = (smiles.match(/Br/g) || []).length;
+    if (!cleanSmiles) {
+      return {
+        name: 'Prázdné plátno',
+        formula: '—',
+        mw: 0,
+        logp: 0,
+        logs: 0,
+        hbd: 0,
+        hba: 0,
+        tpsa: 0,
+        rotb: 0,
+        aroma: 0,
+        heavy: 0,
+        smiles: ''
+      };
+    }
 
-    // Approximate heavy atoms
+    // Heuristic SMILES descriptor parser (based on Wildman-Crippen, ESOL Delaney, and Ertl-Rohde TPSA)
+    let carbon = (cleanSmiles.match(/[C]/g) || []).length + (cleanSmiles.match(/[c]/g) || []).length;
+    let nitrogen = (cleanSmiles.match(/[Nn]/g) || []).length;
+    let oxygen = (cleanSmiles.match(/[Oo]/g) || []).length;
+    let sulfur = (cleanSmiles.match(/[Ss]/g) || []).length;
+    let fluorine = (cleanSmiles.match(/[F]/g) || []).length;
+    let chlorine = (cleanSmiles.match(/Cl/g) || []).length;
+    let bromine = (cleanSmiles.match(/Br/g) || []).length;
+
     const heavy = carbon + nitrogen + oxygen + sulfur + fluorine + chlorine + bromine;
-    
-    // Approximate Hydrogen
-    let hydrogen = Math.max(heavy * 2 + 2 - (smiles.match(/=/g) || []).length * 2 - (smiles.match(/#/g) || []).length * 4, 1);
+    let hydrogen = Math.max(heavy * 2 + 2 - (cleanSmiles.match(/=/g) || []).length * 2 - (cleanSmiles.match(/#/g) || []).length * 4, 1);
     
     // Molecular weight
     const mw = carbon * 12.011 + hydrogen * 1.008 + nitrogen * 14.007 + oxygen * 15.999 + sulfur * 32.06 + fluorine * 18.998 + chlorine * 35.45 + bromine * 79.904;
 
     // H-bond donors (OH, NH) & Acceptors (O, N)
-    const hbd = (smiles.match(/[O][H]|[N][H]|O(?=[A-Z0-9]|$)|N(?=[A-Z0-9]|$)/g) || []).length % (oxygen + nitrogen + 1);
+    const hbd = (cleanSmiles.match(/[O][H]|[N][H]|O(?=[A-Z0-9]|$)|N(?=[A-Z0-9]|$)/g) || []).length % (oxygen + nitrogen + 1);
     const hba = oxygen + nitrogen;
 
     // Aromatic rings
-    const aroma = (smiles.match(/c1|n1/g) || []).length;
+    const aroma = (cleanSmiles.match(/c1|n1/g) || []).length || (cleanSmiles.includes('c') ? 1 : 0);
 
     // Rotatable bonds
     const rotb = Math.max(0, Math.floor(carbon / 3));
 
-    // LogP approximation (Wildman-Crippen heuristic)
+    // Wildman-Crippen SlogP heuristic
     const logp = carbon * 0.28 + chlorine * 0.55 + bromine * 0.70 + fluorine * 0.15 - oxygen * 0.45 - nitrogen * 0.55 + (aroma > 0 ? 0.65 : 0);
 
-    // LogS (Delaney ESOL)
+    // Delaney ESOL logS
     const logs = 0.16 - 0.63 * logp - 0.0062 * mw + 0.066 * rotb - 0.74 * (aroma > 0 ? 1 : 0);
 
-    // TPSA approximation
+    // Ertl-Rohde TPSA heuristic
     const tpsa = oxygen * 17.07 + nitrogen * 12.05;
 
     // Chemical formula string
@@ -1573,8 +1613,8 @@ function initChemoinformaticsLab() {
     if (fluorine > 0) formula += `F${fluorine > 1 ? fluorine : ''}`;
 
     return {
-      name: 'Vlastní molekula (ze SMILES)',
-      formula: formula || 'Organická molekula',
+      name: 'Vlastní molekula (SMILES)',
+      formula: formula || 'Organická sloučenina',
       mw: Math.max(mw, 16.0),
       logp: logp,
       logs: logs,
@@ -1584,8 +1624,58 @@ function initChemoinformaticsLab() {
       rotb: rotb,
       aroma: aroma,
       heavy: Math.max(heavy, 1),
-      draw: (ctx) => drawGenericSMILES(ctx, smiles)
+      smiles: cleanSmiles
     };
+  }
+
+  function renderMolecule(smiles) {
+    ctx.clearRect(0, 0, width, height);
+
+    if (!smiles || !smiles.trim()) {
+      ctx.fillStyle = '#060b17';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Prázdné plátno. Zvolte předvolbu nebo kreslete.', width / 2, height / 2);
+      return;
+    }
+
+    if (drawer && typeof SmilesDrawer !== 'undefined') {
+      SmilesDrawer.parse(smiles, function (tree) {
+        drawer.draw(tree, canvas, 'dark', false);
+      }, function (err) {
+        drawFallbackGraph(ctx, smiles);
+      });
+    } else {
+      drawFallbackGraph(ctx, smiles);
+    }
+  }
+
+  function drawFallbackGraph(ctx, smiles) {
+    ctx.fillStyle = '#060b17';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('2D Molekulární struktura', width / 2, 35);
+
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const count = Math.min(Math.max(smiles.length, 3), 10);
+    for (let i = 0; i < count; i++) {
+      const x = 35 + (i % 5) * 45;
+      const y = 80 + Math.floor(i / 5) * 50 + (i % 2 === 0 ? -10 : 10);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillText(smiles.length > 30 ? smiles.substring(0, 29) + '...' : smiles, width / 2, height - 20);
   }
 
   function updateUI(mol) {
@@ -1647,321 +1737,12 @@ function initChemoinformaticsLab() {
       `;
     }
 
-    // Draw 2D Structure
-    ctx.clearRect(0, 0, width, height);
-    if (mol.draw) {
-      mol.draw(ctx);
-    } else {
-      drawGenericSMILES(ctx, smilesInput.value);
-    }
+    renderMolecule(mol.smiles);
   }
 
-  // --- 2D Skeletal Structure Drawing Routines ---
-  function drawAspirin(ctx) {
-    ctx.save();
-    ctx.translate(110, 105);
-    ctx.scale(0.85, 0.85);
-
-    // Benzene Ring
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * Math.PI) / 3;
-      const x = 36 * Math.cos(angle);
-      const y = 36 * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-
-    // Aromatic circle
-    ctx.beginPath();
-    ctx.arc(0, 0, 22, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
-    ctx.lineWidth = 1.4;
-    ctx.stroke();
-
-    // Ester branch (top right)
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.moveTo(36 * Math.cos(0), 36 * Math.sin(0)); // C1
-    ctx.lineTo(55, -20); // O
-    ctx.lineTo(78, -12); // C=O
-    ctx.lineTo(100, -28); // CH3
-    ctx.stroke();
-
-    // Ester Carbonyl C=O
-    ctx.beginPath();
-    ctx.moveTo(78, -12);
-    ctx.lineTo(82, 10);
-    ctx.stroke();
-
-    // Carboxylic acid branch (top left)
-    ctx.beginPath();
-    ctx.moveTo(36 * Math.cos(-Math.PI / 3), 36 * Math.sin(-Math.PI / 3)); // C2
-    ctx.lineTo(20, -58); // C=O
-    ctx.lineTo(-4, -72); // OH
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(20, -58);
-    ctx.lineTo(40, -74); // =O
-    ctx.stroke();
-
-    // Heteroatom labels
-    ctx.font = 'bold 11px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    
-    // Ester Oxygen
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('O', 55, -24);
-    ctx.fillText('O', 84, 22);
-
-    // Acid Oxygens
-    ctx.fillText('O', 44, -78);
-    ctx.fillText('OH', -16, -75);
-
-    ctx.restore();
-  }
-
-  function drawCaffeine(ctx) {
-    ctx.save();
-    ctx.translate(115, 100);
-    ctx.scale(0.8, 0.8);
-
-    // 6-ring
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.moveTo(-35, -30);
-    ctx.lineTo(10, -30);
-    ctx.lineTo(30, 0);
-    ctx.lineTo(10, 30);
-    ctx.lineTo(-35, 30);
-    ctx.lineTo(-55, 0);
-    ctx.closePath();
-    ctx.stroke();
-
-    // 5-ring fused
-    ctx.beginPath();
-    ctx.moveTo(10, -30);
-    ctx.lineTo(45, -15);
-    ctx.lineTo(45, 15);
-    ctx.lineTo(10, 30);
-    ctx.stroke();
-
-    // Carbonyls
-    ctx.beginPath();
-    ctx.moveTo(-55, 0); ctx.lineTo(-75, 0);
-    ctx.moveTo(10, 30); ctx.lineTo(10, 52);
-    ctx.stroke();
-
-    // Labels
-    ctx.font = 'bold 11px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    
-    ctx.fillStyle = '#38bdf8'; // Nitrogen
-    ctx.fillText('N', -35, -34);
-    ctx.fillText('N', 30, 4);
-    ctx.fillText('N', 48, -18);
-    ctx.fillText('N', -35, 34);
-
-    ctx.fillStyle = '#ef4444'; // Oxygen
-    ctx.fillText('O', -85, 4);
-    ctx.fillText('O', 10, 64);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('CH₃', -35, -50);
-    ctx.fillText('CH₃', -35, 52);
-    ctx.fillText('CH₃', 70, -22);
-
-    ctx.restore();
-  }
-
-  function drawIbuprofen(ctx) {
-    ctx.save();
-    ctx.translate(120, 100);
-    ctx.scale(0.85, 0.85);
-
-    // Benzene
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * Math.PI) / 3;
-      const x = 32 * Math.cos(angle);
-      const y = 32 * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-
-    // Isobutyl tail (left)
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.beginPath();
-    ctx.moveTo(-32, 0);
-    ctx.lineTo(-58, 0);
-    ctx.lineTo(-78, -18);
-    ctx.moveTo(-58, 0);
-    ctx.lineTo(-78, 18);
-    ctx.stroke();
-
-    // Propionic acid (right)
-    ctx.beginPath();
-    ctx.moveTo(32, 0);
-    ctx.lineTo(56, 0);
-    ctx.lineTo(72, -22);
-    ctx.lineTo(92, -22);
-    ctx.moveTo(72, -22);
-    ctx.lineTo(66, -42);
-    ctx.moveTo(56, 0);
-    ctx.lineTo(66, 22);
-    ctx.stroke();
-
-    ctx.font = 'bold 11px Inter, sans-serif';
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('O', 66, -46);
-    ctx.fillText('OH', 104, -18);
-
-    ctx.restore();
-  }
-
-  function drawParacetamol(ctx) {
-    ctx.save();
-    ctx.translate(115, 100);
-    ctx.scale(0.85, 0.85);
-
-    // Benzene
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * Math.PI) / 3;
-      const x = 32 * Math.cos(angle);
-      const y = 32 * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-
-    // -OH (left)
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.beginPath();
-    ctx.moveTo(-32, 0);
-    ctx.lineTo(-52, 0);
-    ctx.stroke();
-
-    // -NH-CO-CH3 (right)
-    ctx.beginPath();
-    ctx.moveTo(32, 0);
-    ctx.lineTo(54, 0);
-    ctx.lineTo(74, 18);
-    ctx.lineTo(96, 18);
-    ctx.moveTo(74, 18);
-    ctx.lineTo(74, 38);
-    ctx.stroke();
-
-    ctx.font = 'bold 11px Inter, sans-serif';
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('OH', -68, 4);
-    ctx.fillText('O', 74, 52);
-
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillText('NH', 54, -6);
-
-    ctx.restore();
-  }
-
-  function drawMorphine(ctx) {
-    ctx.save();
-    ctx.translate(115, 95);
-    ctx.scale(0.75, 0.75);
-
-    // Polycyclic condensed rings
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2.2;
-    ctx.strokeRect(-40, -40, 50, 45);
-    ctx.strokeRect(-15, -15, 55, 55);
-
-    ctx.font = 'bold 11px Inter, sans-serif';
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('HO', -58, -38);
-    ctx.fillText('OH', 55, 45);
-    ctx.fillText('O', 8, 8);
-
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillText('N-CH₃', 25, -25);
-
-    ctx.restore();
-  }
-
-  function drawGlucose(ctx) {
-    ctx.save();
-    ctx.translate(115, 100);
-    ctx.scale(0.8, 0.8);
-
-    // Pyranose 6-membered ring
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * Math.PI) / 3;
-      const x = 36 * Math.cos(angle);
-      const y = 36 * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.font = 'bold 11px Inter, sans-serif';
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('O', 36 * Math.cos(0), 36 * Math.sin(0) - 8);
-    ctx.fillText('OH', -48, -30);
-    ctx.fillText('OH', -48, 30);
-    ctx.fillText('OH', 20, 52);
-    ctx.fillText('CH₂OH', 10, -50);
-
-    ctx.restore();
-  }
-
-  function drawGenericSMILES(ctx, smiles) {
-    ctx.save();
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 12px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('2D Molekulární struktura', width / 2, 40);
-
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    const numNodes = Math.min(Math.max(smiles.length, 3), 9);
-    for (let i = 0; i < numNodes; i++) {
-      const x = 40 + (i % 5) * 38;
-      const y = 80 + Math.floor(i / 5) * 45 + (i % 2 === 0 ? -8 : 8);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px JetBrains Mono, monospace';
-    ctx.fillText(smiles.length > 25 ? smiles.substring(0, 24) + '...' : smiles, width / 2, height - 25);
-    ctx.restore();
-  }
-
-  let activeTool = 'bond1'; // bond1, bond2, benzene, erase
+  // --- Interactive Ketcher Drawing Tools ---
+  let activeTool = 'bond1';
   let activeAtom = 'C';
-  let atoms = [];
-  let bonds = [];
-  let nextId = 1;
-
-  // Ketcher Tool Buttons
   const toolBond1 = document.getElementById('ketcher-tool-bond1');
   const toolBond2 = document.getElementById('ketcher-tool-bond2');
   const toolBenzene = document.getElementById('ketcher-tool-benzene');
@@ -1986,8 +1767,6 @@ function initChemoinformaticsLab() {
 
   if (toolClear) {
     toolClear.addEventListener('click', () => {
-      atoms = [];
-      bonds = [];
       smilesInput.value = '';
       const mol = parseAndComputeSMILES('');
       updateUI(mol);
@@ -2003,158 +1782,37 @@ function initChemoinformaticsLab() {
     });
   });
 
-  // Canvas Click: Interactive Chemical Sketcher
+  // Canvas Click: add atoms, rings or bonds
   canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const cx = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const cy = (e.clientY - rect.top) * (canvas.height / rect.height);
-
-    // Find nearest atom within 18px
-    let nearest = null;
-    let minDist = 22;
-    atoms.forEach(a => {
-      const d = Math.hypot(a.x - cx, a.y - cy);
-      if (d < minDist) {
-        minDist = d;
-        nearest = a;
-      }
-    });
+    let curSmiles = (smilesInput.value || '').trim();
 
     if (activeTool === 'erase') {
-      if (nearest) {
-        atoms = atoms.filter(a => a.id !== nearest.id);
-        bonds = bonds.filter(b => b.from !== nearest.id && b.to !== nearest.id);
-        recalcFromGraph();
+      if (curSmiles.length > 1) {
+        curSmiles = curSmiles.slice(0, -1);
+      } else {
+        curSmiles = '';
       }
-      return;
-    }
-
-    if (activeTool === 'benzene') {
-      // Stamp 6-membered ring
-      const r = 26;
-      const baseId = nextId;
-      const ringAtoms = [];
-      for (let i = 0; i < 6; i++) {
-        const ang = (i * Math.PI) / 3;
-        const ax = cx + r * Math.cos(ang);
-        const ay = cy + r * Math.sin(ang);
-        const atom = { id: nextId++, x: ax, y: ay, symbol: 'c' };
-        atoms.push(atom);
-        ringAtoms.push(atom);
-      }
-      for (let i = 0; i < 6; i++) {
-        bonds.push({
-          from: ringAtoms[i].id,
-          to: ringAtoms[(i + 1) % 6].id,
-          order: i % 2 === 0 ? 2 : 1
-        });
-      }
-      if (nearest) {
-        bonds.push({ from: nearest.id, to: ringAtoms[0].id, order: 1 });
-      }
-      recalcFromGraph();
-      return;
-    }
-
-    if (nearest) {
-      // Add a new branch atom from clicked atom
-      const angle = (bonds.filter(b => b.from === nearest.id || b.to === nearest.id).length * 1.2) - 0.6;
-      const nx = Math.min(Math.max(nearest.x + 28 * Math.cos(angle), 20), width - 20);
-      const ny = Math.min(Math.max(nearest.y + 28 * Math.sin(angle), 20), height - 20);
-      const newAtom = { id: nextId++, x: nx, y: ny, symbol: activeAtom };
-      atoms.push(newAtom);
-      bonds.push({ from: nearest.id, to: newAtom.id, order: activeTool === 'bond2' ? 2 : 1 });
+    } else if (activeTool === 'benzene') {
+      if (!curSmiles) curSmiles = 'c1ccccc1';
+      else curSmiles += 'c1ccccc1';
+    } else if (activeTool === 'bond2') {
+      curSmiles += (activeAtom === 'O' ? '=O' : `=${activeAtom}`);
     } else {
-      // Create new disconnected atom
-      const newAtom = { id: nextId++, x: cx, y: cy, symbol: activeAtom };
-      atoms.push(newAtom);
+      // Single bond with active atom
+      if (activeAtom === 'O') curSmiles += 'O';
+      else if (activeAtom === 'N') curSmiles += 'N';
+      else if (activeAtom === 'S') curSmiles += 'S';
+      else if (activeAtom === 'Cl') curSmiles += 'Cl';
+      else if (activeAtom === 'F') curSmiles += 'F';
+      else curSmiles += 'C';
     }
 
-    recalcFromGraph();
+    smilesInput.value = curSmiles;
+    const mol = parseAndComputeSMILES(curSmiles);
+    updateUI(mol);
   });
 
-  function recalcFromGraph() {
-    if (atoms.length === 0) {
-      smilesInput.value = '';
-      const mol = parseAndComputeSMILES('');
-      updateUI(mol);
-      return;
-    }
-
-    // Build simplified SMILES string from graph
-    let builtSmiles = '';
-    const hasArom = atoms.some(a => a.symbol === 'c');
-    if (hasArom) builtSmiles += 'c1ccccc1';
-
-    const hetero = atoms.filter(a => a.symbol !== 'c' && a.symbol !== 'C');
-    hetero.forEach(h => {
-      builtSmiles += (h.symbol === 'O' ? '(=O)O' : (h.symbol === 'N' ? 'N' : h.symbol));
-    });
-
-    const carbons = atoms.filter(a => a.symbol === 'C');
-    if (!hasArom && carbons.length > 0) {
-      builtSmiles = 'C'.repeat(carbons.length) + builtSmiles;
-    }
-    if (!builtSmiles) builtSmiles = 'C';
-
-    smilesInput.value = builtSmiles;
-    const mol = parseAndComputeSMILES(builtSmiles);
-    mol.name = 'Uživatelem nakreslená molekula (Ketcher)';
-    mol.draw = (ctx) => drawCustomGraph(ctx);
-    updateUI(mol);
-  }
-
-  function drawCustomGraph(ctx) {
-    ctx.clearRect(0, 0, width, height);
-
-    // Draw Bonds
-    bonds.forEach(b => {
-      const a1 = atoms.find(a => a.id === b.from);
-      const a2 = atoms.find(a => a.id === b.to);
-      if (a1 && a2) {
-        ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(a1.x, a1.y);
-        ctx.lineTo(a2.x, a2.y);
-        ctx.stroke();
-
-        if (b.order === 2) {
-          const dx = a2.x - a1.x;
-          const dy = a2.y - a1.y;
-          const len = Math.hypot(dx, dy) || 1;
-          const ox = (-dy / len) * 3.5;
-          const oy = (dx / len) * 3.5;
-          ctx.beginPath();
-          ctx.moveTo(a1.x + ox, a1.y + oy);
-          ctx.lineTo(a2.x + ox, a2.y + oy);
-          ctx.stroke();
-        }
-      }
-    });
-
-    // Draw Atoms
-    atoms.forEach(a => {
-      const colorMap = {
-        'C': '#94a3b8', 'c': '#38bdf8', 'N': '#38bdf8', 'n': '#38bdf8',
-        'O': '#ef4444', 'S': '#eab308', 'Cl': '#22c55e', 'F': '#06b6d4'
-      };
-      const col = colorMap[a.symbol] || '#f8fafc';
-
-      ctx.fillStyle = '#060b17';
-      ctx.beginPath();
-      ctx.arc(a.x, a.y, 9, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = col;
-      ctx.font = 'bold 11px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(a.symbol.toUpperCase(), a.x, a.y);
-    });
-  }
-
-  // --- Event Listeners ---
+  // --- Preset & Input Event Listeners ---
   presetBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       presetBtns.forEach(b => b.classList.remove('active'));
@@ -2181,7 +1839,7 @@ function initChemoinformaticsLab() {
     }
   });
 
-  // Initial Calculation (Aspirin)
+  // Initial Draw with Aspirin
   const initialMol = parseAndComputeSMILES(smilesInput.value);
   updateUI(initialMol);
 }
