@@ -1363,6 +1363,12 @@ function initCoarseGrainedMolstarViewer() {
       iframeUrl: 'https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx&hide-controls=1',
       directUrl: 'https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx'
     },
+    'cellpack-mg': {
+      title: 'Mesoscale model buňky (Mycoplasma genitalium – CellPack):',
+      desc: 'První ucelený 3D model celé živé bakteriální buňky v mezoměřítku. Zobrazuje statisíce proteinů, enzymů, ribozomů, DNA nukleoidu a membránových transporterů v realistické buněčné hustotě (macromolecular crowding).',
+      iframeUrl: 'https://molstar.org/me/viewer/?example=cellpack-mg-tour&hide-controls=1',
+      directUrl: 'https://molstar.org/me/viewer/?example=cellpack-mg-tour'
+    },
     'zika-capsid': {
       title: 'Virová kapsida viru Zika (PDB: 5IRE):',
       desc: 'Kompletní ikosaedrický proteinový obal viru Zika sestavený z milionů atomů. Příklad makromolekulárního komplexu, jehož dynamiku a interakci s protilátkami studujeme pomocí hrubozrnných simulací.',
@@ -1374,12 +1380,6 @@ function initCoarseGrainedMolstarViewer() {
       desc: 'Buněčná továrna na proteiny složená z desítek proteinů a řetězců rRNA. Typický příklad pro studium víceškálového modelování (QM/MM pro syntézu peptidové vazby, hrubozrnné modely pro pohyb podjednotek).',
       iframeUrl: 'https://molstar.org/viewer/?pdb=4v6x&hide-controls=1',
       directUrl: 'https://molstar.org/viewer/?pdb=4v6x'
-    },
-    'spike-trimer': {
-      title: 'SARS-CoV-2 Spike Glykoprotein (PDB: 6VXX):',
-      desc: 'Trimerický povrchový glykoprotein koronaviru v nativní uzavřené konformaci. Hrubozrnné modely umožňují simulovat jeho dynamiku ve velké lipidové membráně s glykany.',
-      iframeUrl: 'https://molstar.org/viewer/?pdb=6vxx&hide-controls=1',
-      directUrl: 'https://molstar.org/viewer/?pdb=6vxx'
     }
   };
 

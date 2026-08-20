@@ -382,9 +382,9 @@
             <label for="cg-model-select" style="font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Zvolte biomolekulární komplex / model:</label>
             <select id="cg-model-select" style="padding: 0.45rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.9rem; font-weight: 600;">
               <option value="motor-hook">🔩 Bakteriální bičíkový motor (Flagellar Motor Hook - Coarse-Grained)</option>
-              <option value="zika-capsid">🦠 Virová kapsida viru Zika (PDB: 5IRE - miliony atomů)</option>
+              <option value="cellpack-mg">🦠 Mesoscale model celé buňky (CellPack – Mycoplasma genitalium)</option>
+              <option value="zika-capsid">🛡️ Virová kapsida viru Zika (PDB: 5IRE - miliony atomů)</option>
               <option value="ribosome">🏭 Bakteriální 70S ribozom (PDB: 4V6X - buněčná továrna)</option>
-              <option value="spike-trimer">🛡️ SARS-CoV-2 Spike Glykoprotein (PDB: 6VXX)</option>
             </select>
           </div>
 
@@ -401,6 +401,22 @@
             <a id="cg-molstar-link" href="https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx" target="_blank" style="color: var(--up-cyan); font-weight: 600; text-decoration: none;">
               Otevřít v plném okně Mol* ↗
             </a>
+          </div>
+        </div>
+
+        <!-- Citation callout for Mol* development at UPOL -->
+        <div style="background: rgba(0, 73, 144, 0.1); border: 1.5px solid var(--up-cyan); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.45rem;">
+            <span style="font-size: 1.25rem;">🇨🇿</span>
+            <h5 style="font-size: 1rem; font-weight: 700; color: var(--up-blue-light); margin-bottom: 0;">
+              Spoluúčast Katedry fyzikální chemie PřF UPOL na vývoji Mol*
+            </h5>
+          </div>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.65rem; line-height: 1.55;">
+            Prohlížeč <strong>Mol* (Molstar.org)</strong> je dnes celosvětovým standardem pro 3D vizualizaci v databázích Protein Data Bank (RCSB PDB, PDBe, PDBj), AlphaFold DB i EMBL-EBI. Na jeho vývoji, architektuře a integraci se přímo podíleli vědci z naší katedry v čele s <strong>prof. Karlem Berkou</strong>.
+          </p>
+          <div style="font-family: var(--font-mono); font-size: 0.76rem; color: #94a3b8; background: rgba(0, 0, 0, 0.35); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border-left: 3px solid var(--up-cyan); line-height: 1.5;">
+            <strong>Citace:</strong> Sehnal D., Bittrich S., Deshpande M., Svobodová Vařeková R., Suzuki H., Mir S., <u>Berka K.</u>, Han S., Rose A. S., Burley S. K., Kleywegt G. J., Velankar S. (2021). <em>Mol* Viewer: modern web app for 3D visualization and analysis of large biomolecular structures.</em> <strong>Nucleic Acids Research</strong>, 49(W1), W431–W437. <a href="https://doi.org/10.1093/nar/gkab314" target="_blank" style="color: var(--up-cyan);">DOI: 10.1093/nar/gkab314</a>
           </div>
         </div>
       </article>
