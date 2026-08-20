@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initPESOptimizationSimulator();
   initVibrationalIRSimulator();
   initCoarseGrainedMolstarViewer();
+  initChemoinformaticsLab();
   initDockingSimulator();
   initAlphaFoldExplorer();
 });
@@ -1396,4 +1397,592 @@ function initCoarseGrainedMolstarViewer() {
       }
     }
   });
+}
+
+/* ==========================================================================
+   5. Kapitola 5: Interaktivní chemoinformatická laboratoř & kalkulátor deskriptorů
+   ========================================================================== */
+function initChemoinformaticsLab() {
+  const canvas = document.getElementById('cheminf-canvas');
+  const smilesInput = document.getElementById('cheminf-smiles-input');
+  const calcBtn = document.getElementById('cheminf-calc-btn');
+  const molNameEl = document.getElementById('cheminf-mol-name');
+  const formulaEl = document.getElementById('cheminf-formula');
+  const presetBtns = document.querySelectorAll('.cheminf-preset-btn');
+
+  // Descriptor elements
+  const descMw = document.getElementById('desc-mw');
+  const descLogp = document.getElementById('desc-logp');
+  const descLogs = document.getElementById('desc-logs');
+  const descHbd = document.getElementById('desc-hbd');
+  const descHba = document.getElementById('desc-hba');
+  const descTpsa = document.getElementById('desc-tpsa');
+  const descRotb = document.getElementById('desc-rotb');
+  const descAroma = document.getElementById('desc-aroma');
+  const descHeavy = document.getElementById('desc-heavy');
+  const lipinskiCard = document.getElementById('lipinski-card');
+  const lipinskiVerdict = document.getElementById('lipinski-verdict');
+  const lipinskiDetails = document.getElementById('lipinski-details');
+
+  if (!canvas || !smilesInput) return;
+
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width = 240;
+  const height = canvas.height = 200;
+
+  // Preset Molecules Database
+  const presets = {
+    'CC(=O)Oc1ccccc1C(=O)O': {
+      name: 'Kyselina acetylsalicylová (Aspirin)',
+      formula: 'C₉H₈O₄',
+      mw: 180.16,
+      logp: 1.31,
+      logs: -2.18,
+      hbd: 1,
+      hba: 4,
+      tpsa: 63.6,
+      rotb: 3,
+      aroma: 1,
+      heavy: 13,
+      draw: (ctx) => drawAspirin(ctx)
+    },
+    'Cn1cnc2c1c(=O)n(c(=O)n2C)C': {
+      name: 'Kofein (1,3,7-trimethylxanthin)',
+      formula: 'C₈H₁₀N₄O₂',
+      mw: 194.19,
+      logp: -0.07,
+      logs: -0.98,
+      hbd: 0,
+      hba: 6,
+      tpsa: 58.4,
+      rotb: 0,
+      aroma: 2,
+      heavy: 14,
+      draw: (ctx) => drawCaffeine(ctx)
+    },
+    'CC(C)Cc1ccc(cc1)C(C)C(=O)O': {
+      name: 'Ibuprofen',
+      formula: 'C₁₃H₁₈O₂',
+      mw: 206.28,
+      logp: 3.50,
+      logs: -3.85,
+      hbd: 1,
+      hba: 2,
+      tpsa: 37.3,
+      rotb: 4,
+      aroma: 1,
+      heavy: 15,
+      draw: (ctx) => drawIbuprofen(ctx)
+    },
+    'CC(=O)Nc1ccc(O)cc1': {
+      name: 'Paracetamol (Acetaminofen)',
+      formula: 'C₈H₉NO₂',
+      mw: 151.16,
+      logp: 0.91,
+      logs: -1.65,
+      hbd: 2,
+      hba: 2,
+      tpsa: 49.3,
+      rotb: 1,
+      aroma: 1,
+      heavy: 11,
+      draw: (ctx) => drawParacetamol(ctx)
+    },
+    'CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O': {
+      name: 'Morfin',
+      formula: 'C₁₇H₁₉NO₃',
+      mw: 285.34,
+      logp: 0.89,
+      logs: -2.15,
+      hbd: 2,
+      hba: 4,
+      tpsa: 49.8,
+      rotb: 0,
+      aroma: 1,
+      heavy: 21,
+      draw: (ctx) => drawMorphine(ctx)
+    },
+    'OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O': {
+      name: 'D-Glukóza',
+      formula: 'C₆H₁₂O₆',
+      mw: 180.16,
+      logp: -3.24,
+      logs: 0.35,
+      hbd: 5,
+      hba: 6,
+      tpsa: 110.4,
+      rotb: 1,
+      aroma: 0,
+      heavy: 12,
+      draw: (ctx) => drawGlucose(ctx)
+    }
+  };
+
+  function parseAndComputeSMILES(smiles) {
+    // Check if preset exists
+    const cleanSmiles = smiles.trim();
+    if (presets[cleanSmiles]) {
+      return presets[cleanSmiles];
+    }
+
+    // Heuristic SMILES descriptor parser
+    let carbon = (smiles.match(/[C]/g) || []).length + (smiles.match(/[c]/g) || []).length;
+    let nitrogen = (smiles.match(/[Nn]/g) || []).length;
+    let oxygen = (smiles.match(/[Oo]/g) || []).length;
+    let sulfur = (smiles.match(/[Ss]/g) || []).length;
+    let fluorine = (smiles.match(/[F]/g) || []).length;
+    let chlorine = (smiles.match(/Cl/g) || []).length;
+    let bromine = (smiles.match(/Br/g) || []).length;
+
+    // Approximate heavy atoms
+    const heavy = carbon + nitrogen + oxygen + sulfur + fluorine + chlorine + bromine;
+    
+    // Approximate Hydrogen
+    let hydrogen = Math.max(heavy * 2 + 2 - (smiles.match(/=/g) || []).length * 2 - (smiles.match(/#/g) || []).length * 4, 1);
+    
+    // Molecular weight
+    const mw = carbon * 12.011 + hydrogen * 1.008 + nitrogen * 14.007 + oxygen * 15.999 + sulfur * 32.06 + fluorine * 18.998 + chlorine * 35.45 + bromine * 79.904;
+
+    // H-bond donors (OH, NH) & Acceptors (O, N)
+    const hbd = (smiles.match(/[O][H]|[N][H]|O(?=[A-Z0-9]|$)|N(?=[A-Z0-9]|$)/g) || []).length % (oxygen + nitrogen + 1);
+    const hba = oxygen + nitrogen;
+
+    // Aromatic rings
+    const aroma = (smiles.match(/c1|n1/g) || []).length;
+
+    // Rotatable bonds
+    const rotb = Math.max(0, Math.floor(carbon / 3));
+
+    // LogP approximation (Wildman-Crippen heuristic)
+    const logp = carbon * 0.28 + chlorine * 0.55 + bromine * 0.70 + fluorine * 0.15 - oxygen * 0.45 - nitrogen * 0.55 + (aroma > 0 ? 0.65 : 0);
+
+    // LogS (Delaney ESOL)
+    const logs = 0.16 - 0.63 * logp - 0.0062 * mw + 0.066 * rotb - 0.74 * (aroma > 0 ? 1 : 0);
+
+    // TPSA approximation
+    const tpsa = oxygen * 17.07 + nitrogen * 12.05;
+
+    // Chemical formula string
+    let formula = '';
+    if (carbon > 0) formula += `C${carbon > 1 ? carbon : ''}`;
+    if (hydrogen > 0) formula += `H${hydrogen > 1 ? hydrogen : ''}`;
+    if (nitrogen > 0) formula += `N${nitrogen > 1 ? nitrogen : ''}`;
+    if (oxygen > 0) formula += `O${oxygen > 1 ? oxygen : ''}`;
+    if (sulfur > 0) formula += `S${sulfur > 1 ? sulfur : ''}`;
+    if (chlorine > 0) formula += `Cl${chlorine > 1 ? chlorine : ''}`;
+    if (fluorine > 0) formula += `F${fluorine > 1 ? fluorine : ''}`;
+
+    return {
+      name: 'Vlastní molekula (ze SMILES)',
+      formula: formula || 'Organická molekula',
+      mw: Math.max(mw, 16.0),
+      logp: logp,
+      logs: logs,
+      hbd: Math.min(hbd, 10),
+      hba: hba,
+      tpsa: tpsa,
+      rotb: rotb,
+      aroma: aroma,
+      heavy: Math.max(heavy, 1),
+      draw: (ctx) => drawGenericSMILES(ctx, smiles)
+    };
+  }
+
+  function updateUI(mol) {
+    if (molNameEl) molNameEl.innerText = mol.name;
+    if (formulaEl) formulaEl.innerText = mol.formula;
+    if (descMw) descMw.innerText = `${mol.mw.toFixed(2)} g/mol`;
+    if (descLogp) descLogp.innerText = `${mol.logp.toFixed(2)}`;
+    
+    // LogS category
+    let solText = `${mol.logs.toFixed(2)}`;
+    if (mol.logs > -1) solText += ' (velmi vysoká)';
+    else if (mol.logs > -3) solText += ' (dobrá)';
+    else if (mol.logs > -5) solText += ' (střední)';
+    else solText += ' (špatná)';
+    if (descLogs) descLogs.innerText = solText;
+
+    if (descHbd) descHbd.innerText = `${mol.hbd}`;
+    if (descHba) descHba.innerText = `${mol.hba}`;
+    if (descTpsa) descTpsa.innerText = `${mol.tpsa.toFixed(1)} Å²`;
+    if (descRotb) descRotb.innerText = `${mol.rotb}`;
+    if (descAroma) descAroma.innerText = `${mol.aroma}`;
+    if (descHeavy) descHeavy.innerText = `${mol.heavy}`;
+
+    // Lipinski Rule of 5 Evaluation
+    let violations = 0;
+    const vMW = mol.mw > 500;
+    const vLogP = mol.logp > 5.0;
+    const vHBD = mol.hbd > 5;
+    const vHBA = mol.hba > 10;
+
+    if (vMW) violations++;
+    if (vLogP) violations++;
+    if (vHBD) violations++;
+    if (vHBA) violations++;
+
+    if (lipinskiVerdict && lipinskiCard && lipinskiDetails) {
+      if (violations === 0) {
+        lipinskiVerdict.innerText = '✅ 0 porušení (vysoká lékovost / perorální dostupnost)';
+        lipinskiVerdict.style.color = '#10b981';
+        lipinskiCard.style.background = 'rgba(16, 185, 129, 0.12)';
+        lipinskiCard.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      } else if (violations === 1) {
+        lipinskiVerdict.innerText = '⚠️ 1 porušení (přijatelná léková dostupnost)';
+        lipinskiVerdict.style.color = '#f59e0b';
+        lipinskiCard.style.background = 'rgba(245, 158, 11, 0.12)';
+        lipinskiCard.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+      } else {
+        lipinskiVerdict.innerText = `❌ ${violations} porušení (nízká perorální biodostupnost)`;
+        lipinskiVerdict.style.color = '#ef4444';
+        lipinskiCard.style.background = 'rgba(239, 68, 68, 0.12)';
+        lipinskiCard.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+      }
+
+      lipinskiDetails.innerHTML = `
+        <span style="color: ${vMW ? '#ef4444' : '#10b981'};">MW ≤ 500: ${vMW ? '❌' : '✅'} (${mol.mw.toFixed(1)})</span>
+        <span style="color: ${vLogP ? '#ef4444' : '#10b981'};">logP ≤ 5: ${vLogP ? '❌' : '✅'} (${mol.logp.toFixed(2)})</span>
+        <span style="color: ${vHBD ? '#ef4444' : '#10b981'};">HBD ≤ 5: ${vHBD ? '❌' : '✅'} (${mol.hbd})</span>
+        <span style="color: ${vHBA ? '#ef4444' : '#10b981'};">HBA ≤ 10: ${vHBA ? '❌' : '✅'} (${mol.hba})</span>
+      `;
+    }
+
+    // Draw 2D Structure
+    ctx.clearRect(0, 0, width, height);
+    if (mol.draw) {
+      mol.draw(ctx);
+    } else {
+      drawGenericSMILES(ctx, smilesInput.value);
+    }
+  }
+
+  // --- 2D Skeletal Structure Drawing Routines ---
+  function drawAspirin(ctx) {
+    ctx.save();
+    ctx.translate(110, 105);
+    ctx.scale(0.85, 0.85);
+
+    // Benzene Ring
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI) / 3;
+      const x = 36 * Math.cos(angle);
+      const y = 36 * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    // Aromatic circle
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // Ester branch (top right)
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(36 * Math.cos(0), 36 * Math.sin(0)); // C1
+    ctx.lineTo(55, -20); // O
+    ctx.lineTo(78, -12); // C=O
+    ctx.lineTo(100, -28); // CH3
+    ctx.stroke();
+
+    // Ester Carbonyl C=O
+    ctx.beginPath();
+    ctx.moveTo(78, -12);
+    ctx.lineTo(82, 10);
+    ctx.stroke();
+
+    // Carboxylic acid branch (top left)
+    ctx.beginPath();
+    ctx.moveTo(36 * Math.cos(-Math.PI / 3), 36 * Math.sin(-Math.PI / 3)); // C2
+    ctx.lineTo(20, -58); // C=O
+    ctx.lineTo(-4, -72); // OH
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(20, -58);
+    ctx.lineTo(40, -74); // =O
+    ctx.stroke();
+
+    // Heteroatom labels
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    
+    // Ester Oxygen
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('O', 55, -24);
+    ctx.fillText('O', 84, 22);
+
+    // Acid Oxygens
+    ctx.fillText('O', 44, -78);
+    ctx.fillText('OH', -16, -75);
+
+    ctx.restore();
+  }
+
+  function drawCaffeine(ctx) {
+    ctx.save();
+    ctx.translate(115, 100);
+    ctx.scale(0.8, 0.8);
+
+    // 6-ring
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(-35, -30);
+    ctx.lineTo(10, -30);
+    ctx.lineTo(30, 0);
+    ctx.lineTo(10, 30);
+    ctx.lineTo(-35, 30);
+    ctx.lineTo(-55, 0);
+    ctx.closePath();
+    ctx.stroke();
+
+    // 5-ring fused
+    ctx.beginPath();
+    ctx.moveTo(10, -30);
+    ctx.lineTo(45, -15);
+    ctx.lineTo(45, 15);
+    ctx.lineTo(10, 30);
+    ctx.stroke();
+
+    // Carbonyls
+    ctx.beginPath();
+    ctx.moveTo(-55, 0); ctx.lineTo(-75, 0);
+    ctx.moveTo(10, 30); ctx.lineTo(10, 52);
+    ctx.stroke();
+
+    // Labels
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    
+    ctx.fillStyle = '#38bdf8'; // Nitrogen
+    ctx.fillText('N', -35, -34);
+    ctx.fillText('N', 30, 4);
+    ctx.fillText('N', 48, -18);
+    ctx.fillText('N', -35, 34);
+
+    ctx.fillStyle = '#ef4444'; // Oxygen
+    ctx.fillText('O', -85, 4);
+    ctx.fillText('O', 10, 64);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('CH₃', -35, -50);
+    ctx.fillText('CH₃', -35, 52);
+    ctx.fillText('CH₃', 70, -22);
+
+    ctx.restore();
+  }
+
+  function drawIbuprofen(ctx) {
+    ctx.save();
+    ctx.translate(120, 100);
+    ctx.scale(0.85, 0.85);
+
+    // Benzene
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI) / 3;
+      const x = 32 * Math.cos(angle);
+      const y = 32 * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    // Isobutyl tail (left)
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.moveTo(-32, 0);
+    ctx.lineTo(-58, 0);
+    ctx.lineTo(-78, -18);
+    ctx.moveTo(-58, 0);
+    ctx.lineTo(-78, 18);
+    ctx.stroke();
+
+    // Propionic acid (right)
+    ctx.beginPath();
+    ctx.moveTo(32, 0);
+    ctx.lineTo(56, 0);
+    ctx.lineTo(72, -22);
+    ctx.lineTo(92, -22);
+    ctx.moveTo(72, -22);
+    ctx.lineTo(66, -42);
+    ctx.moveTo(56, 0);
+    ctx.lineTo(66, 22);
+    ctx.stroke();
+
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('O', 66, -46);
+    ctx.fillText('OH', 104, -18);
+
+    ctx.restore();
+  }
+
+  function drawParacetamol(ctx) {
+    ctx.save();
+    ctx.translate(115, 100);
+    ctx.scale(0.85, 0.85);
+
+    // Benzene
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI) / 3;
+      const x = 32 * Math.cos(angle);
+      const y = 32 * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    // -OH (left)
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.moveTo(-32, 0);
+    ctx.lineTo(-52, 0);
+    ctx.stroke();
+
+    // -NH-CO-CH3 (right)
+    ctx.beginPath();
+    ctx.moveTo(32, 0);
+    ctx.lineTo(54, 0);
+    ctx.lineTo(74, 18);
+    ctx.lineTo(96, 18);
+    ctx.moveTo(74, 18);
+    ctx.lineTo(74, 38);
+    ctx.stroke();
+
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('OH', -68, 4);
+    ctx.fillText('O', 74, 52);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('NH', 54, -6);
+
+    ctx.restore();
+  }
+
+  function drawMorphine(ctx) {
+    ctx.save();
+    ctx.translate(115, 95);
+    ctx.scale(0.75, 0.75);
+
+    // Polycyclic condensed rings
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2.2;
+    ctx.strokeRect(-40, -40, 50, 45);
+    ctx.strokeRect(-15, -15, 55, 55);
+
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('HO', -58, -38);
+    ctx.fillText('OH', 55, 45);
+    ctx.fillText('O', 8, 8);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('N-CH₃', 25, -25);
+
+    ctx.restore();
+  }
+
+  function drawGlucose(ctx) {
+    ctx.save();
+    ctx.translate(115, 100);
+    ctx.scale(0.8, 0.8);
+
+    // Pyranose 6-membered ring
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI) / 3;
+      const x = 36 * Math.cos(angle);
+      const y = 36 * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('O', 36 * Math.cos(0), 36 * Math.sin(0) - 8);
+    ctx.fillText('OH', -48, -30);
+    ctx.fillText('OH', -48, 30);
+    ctx.fillText('OH', 20, 52);
+    ctx.fillText('CH₂OH', 10, -50);
+
+    ctx.restore();
+  }
+
+  function drawGenericSMILES(ctx, smiles) {
+    ctx.save();
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('2D Molekulární struktura', width / 2, 40);
+
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const numNodes = Math.min(Math.max(smiles.length, 3), 9);
+    for (let i = 0; i < numNodes; i++) {
+      const x = 40 + (i % 5) * 38;
+      const y = 80 + Math.floor(i / 5) * 45 + (i % 2 === 0 ? -8 : 8);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillText(smiles.length > 25 ? smiles.substring(0, 24) + '...' : smiles, width / 2, height - 25);
+    ctx.restore();
+  }
+
+  // --- Event Listeners ---
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const smiles = btn.getAttribute('data-smiles');
+      smilesInput.value = smiles;
+      const mol = parseAndComputeSMILES(smiles);
+      updateUI(mol);
+    });
+  });
+
+  if (calcBtn) {
+    calcBtn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      const smiles = smilesInput.value;
+      const mol = parseAndComputeSMILES(smiles);
+      updateUI(mol);
+    });
+  }
+
+  smilesInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      calcBtn.click();
+    }
+  });
+
+  // Initial Calculation (Aspirin)
+  const initialMol = parseAndComputeSMILES(smilesInput.value);
+  updateUI(initialMol);
 }
