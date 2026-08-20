@@ -185,7 +185,7 @@
           Všechny chemické vlastnosti – od barvy látky až po sílu chemické vazby – jsou určeny chováním <strong>elektronů</strong> v molekule. Protože je elektron téměř 2000krát lehčí než proton, nechová se jako klasická kulička, ale vykazuje vlnově-částicový dualismus.
         </p>
         <p>
-          Prostor okolo jádra, kde se elektron s největší pravděpodobností nachází, nazýváme <strong>atomový orbital</strong> ($s$, $p$, $d$, $f$). Kombinací atomových orbitalů vznikají <strong>molekulové orbitaly (MO)</strong>.
+          Prostor okolo jádra, kde se elektron s největší pravděpodobností nachází, nazýváme <strong>atomový orbital</strong> (<i>s</i>, <i>p</i>, <i>d</i>, <i>f</i>). Kombinací atomových orbitalů vznikají <strong>molekulové orbitaly (MO)</strong>.
         </p>
 
         <!-- Interactive Exercise 2: H2 Morse Curve & LCAO -->
@@ -195,17 +195,17 @@
             <h4 style="font-size: 1.15rem; margin-bottom: 0;">Potenciální křivka molekuly H₂ a překryv orbitalů</h4>
           </div>
           <p style="font-size: 0.92rem;">
-            Posouvejte jezdcem vzdálenost mezi dvěma jádry vodíku $R(\text{H-H})$. Sledujte, jak se mění energie systému podle Morseova potenciálu a kde leží energetické minimum (vazebná délka $0.74\text{ \AA}$).
+            Posouvejte jezdcem vzdálenost mezi dvěma jádry vodíku <i>R</i>(H–H). Sledujte, jak se mění energie systému podle Morseova potenciálu a kde leží energetické minimum (vazebná délka 0,74 Å).
           </p>
 
           <div class="sim-controls">
             <div class="sim-slider-group">
-              <label for="h2-distance-slider">Vzdálenost jader $R$:</label>
+              <label for="h2-distance-slider">Vzdálenost jader <i>R</i>:</label>
               <input type="range" id="h2-distance-slider" min="0.4" max="3.5" step="0.05" value="0.74">
               <span id="h2-distance-val" style="font-family: var(--font-mono); font-weight: 700; color: var(--up-blue-light); min-width: 60px;">0.74 Å</span>
             </div>
             <div style="font-size: 0.9rem;">
-              Energie $E$: <strong id="h2-energy-val" style="font-family: var(--font-mono); color: #f59e0b;">-4.75 eV</strong>
+              Energie <i>E</i>: <strong id="h2-energy-val" style="font-family: var(--font-mono); color: #f59e0b;">-4.75 eV</strong>
             </div>
           </div>
 
@@ -219,7 +219,7 @@
               🌌 Vyzkoušejte plnohodnotný 3D Simulátor atomových orbitalů
             </h4>
             <p style="font-size: 0.92rem; margin-bottom: 0;">
-              Interaktivní webový nástroj od doc. Karla Berky (PřF UPOL). Umožňuje 3D Monte Carlo vizualizaci orbitalů pro libovolná kvantová čísla $n, l, m$.
+              Interaktivní webový nástroj od prof. Karla Berky (PřF UPOL). Umožňuje 3D Monte Carlo vizualizaci orbitalů pro libovolná kvantová čísla <i>n</i>, <i>l</i>, <i>m</i>.
             </p>
           </div>
           <a href="https://karelberka.github.io/orbital-simulator/" target="_blank" class="btn btn-primary">
@@ -244,8 +244,10 @@
         </p>
         <p>
           Atomy aproximujeme jako hmotné kuličky s parciálním nábojem a vazby mezi nimi jako mechanické pružinky řídící se Hookeovým zákonem:
-          $$F = -k \cdot (r - r_0)$$
         </p>
+        <div style="text-align: center; font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; color: var(--up-blue-light); margin: 1rem 0; padding: 0.6rem 1rem; background: var(--bg-primary); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <i>F</i> = −<i>k</i> · (<i>r</i> − <i>r</i><sub>0</sub>)
+        </div>
 
         <!-- Interactive Exercise 3: IR Spectra & Vibrational Modes -->
         <div class="interactive-box">
@@ -322,7 +324,7 @@
           <h2 class="chapter-title">Návrh léčiv a dokování: Klíč, zámek a virtuální screening</h2>
         </div>
         <p>
-          Většina léků funguje tak, že se jako klíč zasune do specifické dutiny (aktivního místa) enzymu a zablokuje jeho nežádoucí činnost. <strong>Molekulární dokování</strong> je výpočetní metoda, která simuluje usazení malé molekuly do vazebné kapsy a vyhodnotí vazebnou afinitu ($\Delta G$).
+          Většina léků funguje tak, že se jako klíč zasune do specifické dutiny (aktivního místa) enzymu a zablokuje jeho nežádoucí činnost. <strong>Molekulární dokování</strong> je výpočetní metoda, která simuluje usazení malé molekuly do vazebné kapsy a vyhodnotí vazebnou afinitu (Δ<i>G</i>).
         </p>
 
         <!-- Interactive Exercise 4: Docking Simulator -->
@@ -338,7 +340,7 @@
           <div class="sim-controls">
             <button id="docking-rotate-btn" class="btn btn-secondary btn-sm">🔄 Otočit ligand o 45°</button>
             <div style="font-size: 0.9rem; margin-left: auto;">
-              Vazebná energie $\Delta G$: <strong id="docking-score" style="font-family: var(--font-mono); font-size: 1.1rem; color: #10b981;">-2.0 kcal/mol</strong>
+              Vazebná energie Δ<i>G</i>: <strong id="docking-score" style="font-family: var(--font-mono); font-size: 1.1rem; color: #10b981;">-2.0 kcal/mol</strong>
             </div>
           </div>
 
@@ -399,7 +401,7 @@
           <h2 class="chapter-title">Studium reakcí: Hledání cesty mezi reaktanty a produkty</h2>
         </div>
         <p>
-          Aby chemická reakce proběhla, musí molekuly překonat energetickou bariéru – <strong>aktivační energii ($E_a$)</strong>. Na vrcholu této bariéry leží <strong>přechodový stav</strong> (sedlový bod na ploše potenciální energie).
+          Aby chemická reakce proběhla, musí molekuly překonat energetickou bariéru – <strong>aktivační energii (<i>E</i><sub>a</sub>)</strong>. Na vrcholu této bariéry leží <strong>přechodový stav</strong> (sedlový bod na ploše potenciální energie).
         </p>
         <p>
           Počítačová chemie umožňuje mapovat reakční koordináty, počítat reakční rychlosti a navrhovat katalyzátory, které bariéru snižují a umožňují reakcím běžet za mírných teplot.
