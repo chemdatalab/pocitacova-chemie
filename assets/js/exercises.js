@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initH2MorseSimulator();
   initPESOptimizationSimulator();
   initVibrationalIRSimulator();
+  initCoarseGrainedMolstarViewer();
   initDockingSimulator();
   initAlphaFoldExplorer();
 });
@@ -1340,6 +1341,59 @@ function initAlphaFoldExplorer() {
       iframeViewer.src = item.url;
       if (plddtBar) plddtBar.style.width = `${item.plddt}%`;
       if (descEl) descEl.innerHTML = `<strong>${item.name}</strong> (pLDDT: ${item.plddt}%) — ${item.desc}`;
+    }
+  });
+}
+
+/* ==========================================================================
+   4. Kapitola 4: 3D Mesoscale & Hrubozrnný prohlížeč (Mol*)
+   ========================================================================== */
+function initCoarseGrainedMolstarViewer() {
+  const modelSelect = document.getElementById('cg-model-select');
+  const iframe = document.getElementById('cg-molstar-iframe');
+  const descEl = document.getElementById('cg-model-desc');
+  const linkEl = document.getElementById('cg-molstar-link');
+
+  if (!modelSelect || !iframe) return;
+
+  const models = {
+    'motor-hook': {
+      title: 'Bakteriální bičíkový motor (Motor Hook):',
+      desc: 'Molekulární kloub a univerzální převodovka rotujícího bakteriálního bičíku složená ze stovek proteinových podjednotek. V hrubozrnném zobrazení vidíme dynamické uspořádání celého molekulárního stroje.',
+      iframeUrl: 'https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx&hide-controls=1',
+      directUrl: 'https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx'
+    },
+    'zika-capsid': {
+      title: 'Virová kapsida viru Zika (PDB: 5IRE):',
+      desc: 'Kompletní ikosaedrický proteinový obal viru Zika sestavený z milionů atomů. Příklad makromolekulárního komplexu, jehož dynamiku a interakci s protilátkami studujeme pomocí hrubozrnných simulací.',
+      iframeUrl: 'https://molstar.org/viewer/?pdb=5ire&hide-controls=1',
+      directUrl: 'https://molstar.org/viewer/?pdb=5ire'
+    },
+    'ribosome': {
+      title: 'Bakteriální 70S ribozom (PDB: 4V6X):',
+      desc: 'Buněčná továrna na proteiny složená z desítek proteinů a řetězců rRNA. Typický příklad pro studium víceškálového modelování (QM/MM pro syntézu peptidové vazby, hrubozrnné modely pro pohyb podjednotek).',
+      iframeUrl: 'https://molstar.org/viewer/?pdb=4v6x&hide-controls=1',
+      directUrl: 'https://molstar.org/viewer/?pdb=4v6x'
+    },
+    'spike-trimer': {
+      title: 'SARS-CoV-2 Spike Glykoprotein (PDB: 6VXX):',
+      desc: 'Trimerický povrchový glykoprotein koronaviru v nativní uzavřené konformaci. Hrubozrnné modely umožňují simulovat jeho dynamiku ve velké lipidové membráně s glykany.',
+      iframeUrl: 'https://molstar.org/viewer/?pdb=6vxx&hide-controls=1',
+      directUrl: 'https://molstar.org/viewer/?pdb=6vxx'
+    }
+  };
+
+  modelSelect.addEventListener('change', (e) => {
+    const key = e.target.value;
+    const item = models[key];
+    if (item) {
+      iframe.src = item.iframeUrl;
+      if (descEl) {
+        descEl.innerHTML = `<strong>${item.title}</strong> ${item.desc}`;
+      }
+      if (linkEl) {
+        linkEl.href = item.directUrl;
+      }
     }
   });
 }

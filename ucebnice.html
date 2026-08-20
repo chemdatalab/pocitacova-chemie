@@ -362,19 +362,46 @@
           <h2 class="chapter-title">Hrubozrnné a víceškálové metody: Od atomů k biologickým systémům</h2>
         </div>
         <p>
-          Biologické procesy v buňce probíhají na obrovských škálách milionů atomů. V hrubozrnných modelech (<em>Coarse-Grained</em>, např. silové pole MARTINI) slučujeme 3–4 těžké atomy do jediné zjednodušené interakční koule (beadu).
+          Biologické procesy v buňce probíhají na obrovských škálách milionů atomů a v časových horizontech milisekund. V <strong>hrubozrnných modelech (Coarse-Grained / CG)</strong>, jako je silové pole MARTINI, slučujeme skupiny 3–4 těžkých atomů do jediných zjednodušených interakčních koulí (tzv. <em>beadů</em>). Tím dramaticky snižujeme počet stupňů volnosti a můžeme simulovat obří buněčné motory, biologické membrány či virové obaly.
         </p>
         <p>
-          Pokud potřebujeme studovat enzymatickou reakci v obřím proteinu, propojíme obě metody – aktivní centrum popíšeme přesně kvantovou mechanikou (QM) a zbytek proteinu s vodou klasickou molekulovou mechanikou (MM). Za vývoj metod <strong>QM/MM</strong> byla v roce 2013 udělena Nobelova cena za chemii (Karplus, Levitt, Warshel).
+          Pokud potřebujeme studovat enzymatickou reakci v obřím proteinovém komplexu, propojíme obě metody do <strong>víceškálového modelu QM/MM</strong>: samotné reaktivní centrum popíšeme exaktně kvantovou mechanikou (QM) a zbytek obřího proteinu s rozpouštědlem klasickou mechanikou (MM). Za vývoj víceškálových modelů byla v roce 2013 udělena <strong>Nobelova cena za chemii</strong> (Martin Karplus, Michael Levitt, Arieh Warshel).
         </p>
-        <div class="callout-remember">
-          <h5>🔬 Prohlížení obřích biomolekulárních komplexů</h5>
-          <p style="margin-bottom: 0.5rem;">
-            Pro vizualizaci struktur s miliony atomů (ribozomy, virové kapsidy) se dnes v moderní vědě využívá nástroj <strong>Mol* (Molstar.org)</strong>, vyvíjený ve spolupráci s českými vědci.
+
+        <!-- Interactive Exercise 4: Mesoscale & Coarse-Grained Mol* Explorer -->
+        <div class="interactive-box" style="margin-top: 2rem;">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 4</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">3D Mesoscale & Hrubozrnný prohlížeč (Mol*)</h4>
+          </div>
+          <p style="font-size: 0.92rem;">
+            Vyzkoušejte si interaktivní 3D prohlížení obřích makromolekulárních komplexů a mesoscale struktur přímo v prohlížeči pomocí špičkového vědeckého nástroje <strong>Mol* (Molstar.org)</strong>.
           </p>
-          <a href="https://molstar.org/viewer/" target="_blank" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;">
-            Otevřít Mol* Viewer ↗
-          </a>
+
+          <div style="margin-bottom: 1rem;">
+            <label for="cg-model-select" style="font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Zvolte biomolekulární komplex / model:</label>
+            <select id="cg-model-select" style="padding: 0.45rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); font-size: 0.9rem; font-weight: 600;">
+              <option value="motor-hook">🔩 Bakteriální bičíkový motor (Flagellar Motor Hook - Coarse-Grained)</option>
+              <option value="zika-capsid">🦠 Virová kapsida viru Zika (PDB: 5IRE - miliony atomů)</option>
+              <option value="ribosome">🏭 Bakteriální 70S ribozom (PDB: 4V6X - buněčná továrna)</option>
+              <option value="spike-trimer">🛡️ SARS-CoV-2 Spike Glykoprotein (PDB: 6VXX)</option>
+            </select>
+          </div>
+
+          <div id="cg-model-desc" style="font-size: 0.88rem; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border-color); border-left: 3px solid var(--up-cyan);">
+            <strong>Bakteriální bičíkový motor (Motor Hook):</strong> Molekulární kloub a univerzální převodovka rotujícího bakteriálního bičíku složená ze stovek proteinových podjednotek. V hrubozrnném zobrazení vidíme dynamické uspořádání celého molekulárního stroje.
+          </div>
+
+          <div style="width: 100%; height: 440px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); background: #000000;">
+            <iframe id="cg-molstar-iframe" src="https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx&hide-controls=1" style="width: 100%; height: 100%; border: none;"></iframe>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.8rem; color: #94a3b8;">
+            <span>💡 <em>Myší můžete strukturu rotovat, posouvat a přibližovat (zoom).</em></span>
+            <a id="cg-molstar-link" href="https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx" target="_blank" style="color: var(--up-cyan); font-weight: 600; text-decoration: none;">
+              Otevřít v plném okně Mol* ↗
+            </a>
+          </div>
         </div>
       </article>
 
