@@ -1533,54 +1533,198 @@ function initDockingSimulator() {
   const pocket = {
     x: 270,
     y: 160,
-    hBondSite1: { x: 230, y: 130, type: 'H-Acceptor' },
-    hBondSite2: { x: 310, y: 130, type: 'H-Donor' },
-    hydrophobicSite: { x: 270, y: 195, radius: 28 }
+    hBondSite1: { x: 230, y: 130, type: 'Acceptor', color: '#ef4444', label: 'Akceptor (O/N)' },
+    hBondSite2: { x: 310, y: 130, type: 'Donor', color: '#3b82f6', label: 'Donor (-NH/-OH)' },
+    hydrophobicSite: { x: 270, y: 195, radius: 26, color: '#f59e0b', label: 'Hydrofobní kapsa' }
   };
 
   // Ligand (Drug Candidate) draggable state
   let ligand = {
-    x: 120,
+    x: 100,
     y: 160,
     angle: 0,
     isDragging: false
   };
 
   const scoreEl = document.getElementById('docking-score');
+  const kdEl = document.getElementById('docking-kd');
   const statusEl = document.getElementById('docking-status');
 
+  // Convert Delta G (kcal/mol) to Kd (Dissociation constant) at T = 298.15 K
+  // Delta G = RT * ln(Kd)  =>  Kd = exp(Delta G / RT)
+  // RT = 1.9872 cal/(mol*K) * 298.15 K = 592.48 cal/mol = 0.5925 kcal/mol
+  function computeKd(deltaG_kcal) {
+    if (deltaG_kcal >= 0) {
+      return { valM: 1.0, str: '> 1 M (bez vazby)', rawKd: 1.0 };
+    }
+
+    const RT = 0.5925; // kcal/mol
+    const kd_M = Math.exp(deltaG_kcal / RT);
+
+    let str = '';
+    if (kd_M >= 1e-3) {
+      str = `${(kd_M * 1e3).toFixed(1)} mM (velmi slabá)`;
+    } else if (kd_M >= 1e-6) {
+      str = `${(kd_M * 1e6).toFixed(1)} µM (mikromolární)`;
+    } else if (kd_M >= 1e-9) {
+      str = `${(kd_M * 1e9).toFixed(1)} nM (nanomolární)`;
+    } else {
+      str = `${(kd_M * 1e12).toFixed(1)} pM (pikomolární)`;
+    }
+
+    return { valM: kd_M, str: str, rawKd: kd_M };
+  }
+
+  // Active interaction vectors for visual rendering
+  const activeInteractions = [];
+
   function calculateScore() {
+    activeInteractions.length = 0;
+
     const dx = ligand.x - pocket.x;
     const dy = ligand.y - pocket.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+    const distCenter = Math.hypot(dx, dy);
 
-    // Orientation score
-    const targetAngle = 0;
-    const angleDiff = Math.abs((ligand.angle % (Math.PI * 2)) - targetAngle);
+    // Compute global coordinates of Ligand pharmacophore points
+    const cosA = Math.cos(ligand.angle);
+    const sinA = Math.sin(ligand.angle);
 
-    let affinity = -2.0; // Baseline non-specific interaction
+    // Ligand Donor point: local (-28, -18)
+    const ligDonor = {
+      x: ligand.x + (-28 * cosA - (-18) * sinA),
+      y: ligand.y + (-28 * sinA + (-18) * cosA)
+    };
 
-    if (dist < 45) {
-      affinity -= (45 - dist) * 0.16; // Binding in pocket
-      if (angleDiff < 0.4 || angleDiff > Math.PI * 2 - 0.4) {
-        affinity -= 3.8; // Perfect H-bond alignment!
+    // Ligand Acceptor point: local (+28, -18)
+    const ligAcceptor = {
+      x: ligand.x + (28 * cosA - (-18) * sinA),
+      y: ligand.y + (28 * sinA + (-18) * cosA)
+    };
+
+    // Ligand Hydrophobic group: local (0, +28)
+    const ligHydro = {
+      x: ligand.x + (0 * cosA - 28 * sinA),
+      y: ligand.y + (0 * sinA + 28 * cosA)
+    };
+
+    let deltaG = 0.0;
+
+    if (distCenter > 80) {
+      // Free ligand in solution outside active site
+      deltaG = 0.0;
+    } else {
+      // Ligand inside pocket: baseline cavity desolvation penalty (+1.5 kcal/mol)
+      deltaG = 1.5;
+
+      // 1. Shape & Cavity complementarity
+      deltaG -= 1.2 * Math.exp(-(distCenter * distCenter) / 900);
+
+      // 2. Hydrogen Bond 1: Ligand Donor -> Pocket Site 1 (Acceptor at 230, 130)
+      const dD_S1 = Math.hypot(ligDonor.x - pocket.hBondSite1.x, ligDonor.y - pocket.hBondSite1.y);
+      if (dD_S1 < 22) {
+        const eHB1 = -4.2 * Math.exp(-(dD_S1 * dD_S1) / 90);
+        deltaG += eHB1;
+        activeInteractions.push({
+          x1: ligDonor.x, y1: ligDonor.y,
+          x2: pocket.hBondSite1.x, y2: pocket.hBondSite1.y,
+          type: 'hbond', color: '#10b981'
+        });
+      }
+
+      // 3. Hydrogen Bond 2: Ligand Acceptor -> Pocket Site 2 (Donor at 310, 130)
+      const dA_S2 = Math.hypot(ligAcceptor.x - pocket.hBondSite2.x, ligAcceptor.y - pocket.hBondSite2.y);
+      if (dA_S2 < 22) {
+        const eHB2 = -4.2 * Math.exp(-(dA_S2 * dA_S2) / 90);
+        deltaG += eHB2;
+        activeInteractions.push({
+          x1: ligAcceptor.x, y1: ligAcceptor.y,
+          x2: pocket.hBondSite2.x, y2: pocket.hBondSite2.y,
+          type: 'hbond', color: '#10b981'
+        });
+      }
+
+      // 4. Hydrophobic Interaction: Ligand Hydrophobic Ring -> Pocket Hydrophobic Site (270, 195)
+      const dH_SH = Math.hypot(ligHydro.x - pocket.hydrophobicSite.x, ligHydro.y - pocket.hydrophobicSite.y);
+      if (dH_SH < 26) {
+        const eHyd = -4.6 * Math.exp(-(dH_SH * dH_SH) / 140);
+        deltaG += eHyd;
+        activeInteractions.push({
+          x1: ligHydro.x, y1: ligHydro.y,
+          x2: pocket.hydrophobicSite.x, y2: pocket.hydrophobicSite.y,
+          type: 'hydro', color: '#f59e0b'
+        });
+      }
+
+      // 5. ELECTROSTATIC / PHARMACOPHORE CLASHES (When rotated or mismatched)
+      // Clash A: Ligand Acceptor near Pocket Acceptor Site 1 (same charge repulsion)
+      const dA_S1 = Math.hypot(ligAcceptor.x - pocket.hBondSite1.x, ligAcceptor.y - pocket.hBondSite1.y);
+      if (dA_S1 < 22) {
+        const eClash1 = 4.5 * Math.exp(-(dA_S1 * dA_S1) / 90);
+        deltaG += eClash1;
+        activeInteractions.push({
+          x1: ligAcceptor.x, y1: ligAcceptor.y,
+          x2: pocket.hBondSite1.x, y2: pocket.hBondSite1.y,
+          type: 'clash', color: '#ef4444'
+        });
+      }
+
+      // Clash B: Ligand Donor near Pocket Donor Site 2 (same charge repulsion)
+      const dD_S2 = Math.hypot(ligDonor.x - pocket.hBondSite2.x, ligDonor.y - pocket.hBondSite2.y);
+      if (dD_S2 < 22) {
+        const eClash2 = 4.5 * Math.exp(-(dD_S2 * dD_S2) / 90);
+        deltaG += eClash2;
+        activeInteractions.push({
+          x1: ligDonor.x, y1: ligDonor.y,
+          x2: pocket.hBondSite2.x, y2: pocket.hBondSite2.y,
+          type: 'clash', color: '#ef4444'
+        });
+      }
+
+      // Clash C: Polar groups entering hydrophobic pocket
+      const dD_SH = Math.hypot(ligDonor.x - pocket.hydrophobicSite.x, ligDonor.y - pocket.hydrophobicSite.y);
+      const dA_SH = Math.hypot(ligAcceptor.x - pocket.hydrophobicSite.x, ligAcceptor.y - pocket.hydrophobicSite.y);
+      if (dD_SH < 20 || dA_SH < 20) {
+        deltaG += 3.0;
       }
     }
 
+    // Clamp score
+    deltaG = Math.max(-12.5, Math.min(6.0, deltaG));
+    const kdInfo = computeKd(deltaG);
+
+    // Update UI elements
     if (scoreEl) {
-      scoreEl.innerText = `${affinity.toFixed(1)} kcal/mol`;
+      scoreEl.innerText = `${deltaG > 0 ? '+' : ''}${deltaG.toFixed(1)} kcal/mol`;
+      if (deltaG <= -10.0) scoreEl.style.color = '#10b981';
+      else if (deltaG <= -5.0) scoreEl.style.color = '#00f5d4';
+      else if (deltaG < 0) scoreEl.style.color = '#f59e0b';
+      else scoreEl.style.color = '#ef4444';
+    }
+
+    if (kdEl) {
+      kdEl.innerText = kdInfo.str;
+      if (kdInfo.valM < 1e-7) kdEl.style.color = '#10b981';
+      else if (kdInfo.valM < 1e-4) kdEl.style.color = '#00f5d4';
+      else if (kdInfo.valM < 1e-2) kdEl.style.color = '#f59e0b';
+      else kdEl.style.color = '#ef4444';
     }
 
     if (statusEl) {
-      if (affinity < -7.5) {
-        statusEl.innerText = '🔥 Perfektní vazba! Silný inhibitor enzymu.';
-        statusEl.style.color = '#10b981';
-      } else if (affinity < -4.5) {
-        statusEl.innerText = '⚡ Částečná vazba. Zkuste ligand pootočit nebo lépe usadit.';
-        statusEl.style.color = '#f59e0b';
-      } else {
-        statusEl.innerText = '❄️ Volný ligand mimo vazebnou kapsu.';
+      if (distCenter > 75) {
+        statusEl.innerText = '❄️ Volný ligand v roztoku mimo vazebnou kapsu enzymu.';
         statusEl.style.color = '#94a3b8';
+      } else if (deltaG <= -10.5) {
+        statusEl.innerText = `🔥 Perfektní vazba! Silný specifický inhibitor enzymu (nanomolární afinita: Kd = ${kdInfo.str.split(' ')[0]}).`;
+        statusEl.style.color = '#10b981';
+      } else if (deltaG <= -5.5) {
+        statusEl.innerText = `⚡ Částečná vazba (mikromolární hit: Kd = ${kdInfo.str.split(' ')[0]}). Zkuste ligand lépe natočit.`;
+        statusEl.style.color = '#f59e0b';
+      } else if (deltaG < 0) {
+        statusEl.innerText = `⚠️ Slabá nespecifická vazba (Kd = ${kdInfo.str.split(' ')[0]}). Farmakofory přesně nelícují s aktivním místem.`;
+        statusEl.style.color = '#f97316';
+      } else {
+        statusEl.innerText = '❌ Vazebný clash (odpuzování stejných nábojů a sterická srážka)! Otočte ligand správným směrem.';
+        statusEl.style.color = '#ef4444';
       }
     }
   }
@@ -1591,86 +1735,148 @@ function initDockingSimulator() {
     // 1. Draw Enzyme Surface & Binding Pocket
     ctx.fillStyle = '#1e293b';
     ctx.beginPath();
-    ctx.roundRect(180, 70, 180, 180, 24);
+    ctx.roundRect(175, 65, 190, 190, 24);
     ctx.fill();
-
-    // Pocket Cavity
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath();
-    ctx.arc(pocket.x, pocket.y, 65, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#38bdf8';
+    ctx.strokeStyle = '#334155';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Pharmacophore Features inside pocket
-    // H-Bond Acceptor (Red)
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+    // Pocket Cavity
+    ctx.fillStyle = '#0a1020';
     ctx.beginPath();
-    ctx.arc(pocket.hBondSite1.x, pocket.hBondSite1.y, 14, 0, Math.PI * 2);
+    ctx.arc(pocket.x, pocket.y, 66, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#00f5d4';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // Pharmacophore Features inside pocket
+    // Site 1: H-Bond Acceptor (Red)
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+    ctx.beginPath();
+    ctx.arc(pocket.hBondSite1.x, pocket.hBondSite1.y, 16, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
-    ctx.arc(pocket.hBondSite1.x, pocket.hBondSite1.y, 5, 0, Math.PI * 2);
+    ctx.arc(pocket.hBondSite1.x, pocket.hBondSite1.y, 6, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = 'bold 8px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Akceptor', pocket.hBondSite1.x, pocket.hBondSite1.y - 10);
 
-    // H-Bond Donor (Blue)
-    ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+    // Site 2: H-Bond Donor (Blue)
+    ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
     ctx.beginPath();
-    ctx.arc(pocket.hBondSite2.x, pocket.hBondSite2.y, 14, 0, Math.PI * 2);
+    ctx.arc(pocket.hBondSite2.x, pocket.hBondSite2.y, 16, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#3b82f6';
     ctx.beginPath();
-    ctx.arc(pocket.hBondSite2.x, pocket.hBondSite2.y, 5, 0, Math.PI * 2);
+    ctx.arc(pocket.hBondSite2.x, pocket.hBondSite2.y, 6, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = '#93c5fd';
+    ctx.font = 'bold 8px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Donor', pocket.hBondSite2.x, pocket.hBondSite2.y - 10);
 
-    // Hydrophobic Pocket (Yellow/Green)
+    // Hydrophobic Pocket Site (Yellow/Orange)
     ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
     ctx.beginPath();
     ctx.arc(pocket.hydrophobicSite.x, pocket.hydrophobicSite.y, pocket.hydrophobicSite.radius, 0, Math.PI * 2);
     ctx.fill();
-
-    // Pocket Labels
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter, sans-serif';
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(pocket.hydrophobicSite.x, pocket.hydrophobicSite.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 8px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Aktivní místo enzymu', pocket.x, 50);
+    ctx.fillText('Hydrofobní', pocket.hydrophobicSite.x, pocket.hydrophobicSite.y + 18);
 
-    // 2. Draw Ligand (Molecule)
+    // Pocket Title
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Aktivní místo enzymu', pocket.x, 48);
+
+    // 2. Draw Active Interactions Lines (H-bonds, Clashes, Hydrophobic)
+    for (let i = 0; i < activeInteractions.length; i++) {
+      const inter = activeInteractions[i];
+      ctx.strokeStyle = inter.color;
+      ctx.lineWidth = inter.type === 'clash' ? 2.5 : 2;
+      ctx.setLineDash(inter.type === 'clash' ? [4, 2] : [3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(inter.x1, inter.y1);
+      ctx.lineTo(inter.x2, inter.y2);
+      ctx.stroke();
+
+      if (inter.type === 'clash') {
+        // Draw Clash warning icon in middle
+        const midX = (inter.x1 + inter.x2) / 2;
+        const midY = (inter.y1 + inter.y2) / 2;
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡', midX, midY + 4);
+      }
+    }
+    ctx.setLineDash([]);
+
+    // 3. Draw Ligand (Molecule)
     ctx.save();
     ctx.translate(ligand.x, ligand.y);
     ctx.rotate(ligand.angle);
 
-    // Ligand Backbone
-    ctx.strokeStyle = '#10b981';
+    // Ligand Backbone Skeleton
+    ctx.strokeStyle = '#00f5d4';
     ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(-25, -20);
+    ctx.moveTo(-28, -18);
     ctx.lineTo(0, 0);
-    ctx.lineTo(25, -20);
+    ctx.lineTo(28, -18);
     ctx.moveTo(0, 0);
     ctx.lineTo(0, 28);
     ctx.stroke();
 
-    // Matching Pharmacophore points on Ligand
-    // Donor atom
+    // Central carbon node
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, 0, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Donor group on Ligand (-NH2 / Blue, local -28, -18)
     ctx.fillStyle = '#3b82f6';
     ctx.beginPath();
-    ctx.arc(-25, -20, 7, 0, Math.PI * 2);
+    ctx.arc(-28, -18, 8, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 7px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('D', -28, -18);
 
-    // Acceptor atom
+    // Acceptor group on Ligand (=O / Red, local +28, -18)
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
-    ctx.arc(25, -20, 7, 0, Math.PI * 2);
+    ctx.arc(28, -18, 8, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 7px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('A', 28, -18);
 
-    // Hydrophobic moiety (Benzene ring shape)
+    // Hydrophobic moiety (Benzene ring shape, local 0, +28)
     ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
-    ctx.arc(0, 28, 9, 0, Math.PI * 2);
+    ctx.arc(0, 28, 10, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = '#060b17';
+    ctx.font = 'bold 8px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⬡', 0, 28);
 
     ctx.restore();
 
@@ -1682,6 +1888,7 @@ function initDockingSimulator() {
   if (rotateBtn) {
     rotateBtn.addEventListener('click', () => {
       ligand.angle += Math.PI / 4;
+      while (ligand.angle >= Math.PI * 2) ligand.angle -= Math.PI * 2;
       draw();
     });
   }

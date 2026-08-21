@@ -731,16 +731,21 @@
         <div class="interactive-box">
           <div class="interactive-header">
             <span class="interactive-badge">⚡ Interaktivní cvičení 6</span>
-            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Interaktivní dokovací simulátor: Klíč a zámek</h4>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Interaktivní dokovací simulátor: Klíč, zámek & afinita</h4>
           </div>
           <p style="font-size: 0.92rem;">
-            Přetáhněte molekulu ligandu myší/dotykem do aktivního místa enzymu. Tlačítkem <em>„Otočit ligand“</em> vyzkoušejte správnou orientaci pro vytvoření vodíkových můstků (červený akceptor, modrý donor, žlutý hydrofobní kruh).
+            Přetáhněte molekulu ligandu myší/dotykem do aktivního místa enzymu. Tlačítkem <em>„Otočit ligand“</em> vyzkoušejte správnou prostorovou orientaci pro vytvoření vodíkových můstků (červený akceptor, modrý donor, žlutý hydrofobní kruh). Skóre počítá vazebnou volnou energii Δ<i>G</i> a z ní podle termodynamického vztahu $\Delta G = RT \ln K_d$ odhaduje disociační konstantu <strong><i>K</i><sub>d</sub></strong> (potřebnou koncentraci pro inhibici: mM, µM, nM, pM).
           </p>
 
-          <div class="sim-controls">
+          <div class="sim-controls" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem;">
             <button id="docking-rotate-btn" class="btn btn-secondary btn-sm">🔄 Otočit ligand o 45°</button>
-            <div style="font-size: 0.9rem; margin-left: auto;">
-              Vazebná energie Δ<i>G</i>: <strong id="docking-score" style="font-family: var(--font-mono); font-size: 1.1rem; color: #10b981;">-2.0 kcal/mol</strong>
+            <div style="display: flex; flex-wrap: wrap; gap: 1.25rem; font-size: 0.88rem; align-items: center;">
+              <div>
+                Vazebná energie Δ<i>G</i>: <strong id="docking-score" style="font-family: var(--font-mono); font-size: 1.05rem; color: var(--up-cyan);">0.0 kcal/mol</strong>
+              </div>
+              <div>
+                Odhad afinity <i>K</i><sub>d</sub>: <strong id="docking-kd" style="font-family: var(--font-mono); font-size: 1.05rem; color: #10b981;">> 1 M (volný)</strong>
+              </div>
             </div>
           </div>
 
