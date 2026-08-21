@@ -902,7 +902,7 @@ function initWaterPhaseMDSimulator() {
   let animId = null;
   let showHbonds = hbondsToggle ? hbondsToggle.checked : true;
 
-  // Number of water molecules in 2D box
+  // 48 water molecules in 2D box
   const numCols = 8;
   const numRows = 6;
   const N = numCols * numRows; // 48 molecules
@@ -911,39 +911,39 @@ function initWaterPhaseMDSimulator() {
   const O_RADIUS = 7.5;
   const H_RADIUS = 4.2;
   const OH_DIST = 11.5; // pixels
-  const HOH_ANGLE = 104.5 * (Math.PI / 180);
+  const HOH_HALF_ANGLE = (104.5 / 2) * (Math.PI / 180);
 
-  // Initialize Hexagonal Ice Lattice Coordinates
+  // Initialize Hexagonal Ice Lattice Coordinates (Cohesive bulk at bottom-left)
   function initLattice() {
     molecules.length = 0;
-    const paddingX = 40;
-    const paddingY = 45;
-    const usableW = width - 150 - paddingX * 2; // Leave right side for mini phase diagram
-    const usableH = height - paddingY * 2;
-
-    const dx = usableW / (numCols - 1);
-    const dy = usableH / (numRows - 1);
+    
+    // Ice hexagonal lattice: tight cohesive packing with hexagonal channels
+    // Spacing ~29.5 px (only ~8% less dense than liquid ~27.5 px)
+    const startX = 40;
+    const startY = 120;
+    const dx = 29.5;
+    const dy = 25.5;
 
     for (let r = 0; r < numRows; r++) {
       for (let c = 0; c < numCols; c++) {
-        // Hexagonal staggered offset
         const xOffset = (r % 2 === 1) ? dx * 0.5 : 0;
-        const lx = paddingX + c * dx + xOffset;
-        const ly = paddingY + r * dy;
+        const lx = startX + c * dx + xOffset;
+        const ly = startY + r * dy;
 
-        // Ice orientation: alternating tetrahedral network
-        const targetAngle = ((r + c) % 2 === 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.2;
+        // Ice orientation: alternating tetrahedral network where H points to neighbor O
+        const baseAng = ((r + c) % 2 === 0 ? 0.35 : Math.PI + 0.35);
 
         molecules.push({
           x: lx,
           y: ly,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          lx: lx, // Lattice home X
-          ly: ly, // Lattice home Y
-          angle: targetAngle,
-          targetAngle: targetAngle,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+          lx: lx, // Lattice anchor X
+          ly: ly, // Lattice anchor Y
+          angle: baseAng,
+          targetAngle: baseAng,
           vRot: (Math.random() - 0.5) * 0.02,
+          phase: 'ice', // 'ice', 'liquid', 'gas'
           hBondCount: 0
         });
       }
@@ -954,41 +954,102 @@ function initWaterPhaseMDSimulator() {
 
   // Clausius-Clapeyron: Boiling point as function of pressure (p in atm)
   function getBoilingPoint(pressAtm) {
-    // T_boil = 100 °C at 1.0 atm; at 0.33 atm ~ 70 °C; at 2 atm ~ 120 °C
     return 100.0 + 28.0 * (Math.log(pressAtm) / Math.LN10);
+  }
+
+  // Calculate Phase Fractions with Smooth Coexistence at Transitions
+  function getPhaseFractions(tempC, pressAtm) {
+    const T_boil = getBoilingPoint(pressAtm);
+    const T_melt = 0.0;
+
+    let fIce = 0;
+    let fGas = 0;
+    let fLiq = 0;
+
+    // Solid-Liquid Transition around 0 °C (Range: -10 °C to +10 °C)
+    if (tempC <= -10) {
+      fIce = 1.0;
+    } else if (tempC < 10) {
+      // Linear smooth transition: At 0 °C, exactly 50% Ice and 50% Liquid!
+      fIce = 0.5 - (tempC - T_melt) / 20.0;
+      fLiq = 1.0 - fIce;
+    } else if (tempC < T_boil - 15) {
+      fLiq = 1.0;
+    } else if (tempC <= T_boil + 15) {
+      // Liquid-Gas Transition around T_boil: At T_boil, exactly 50% Liquid and 50% Gas!
+      fGas = 0.5 + (tempC - T_boil) / 30.0;
+      fLiq = 1.0 - fGas;
+    } else {
+      fGas = 1.0;
+    }
+
+    fIce = Math.max(0, Math.min(1, fIce));
+    fGas = Math.max(0, Math.min(1, fGas));
+    fLiq = Math.max(0, Math.min(1, fLiq));
+
+    return { fIce, fLiq, fGas, T_boil };
   }
 
   function updateStateLabels() {
     const T_Kelvin = Math.round(T + 273.15);
     const p_kPa = (p * 101.325).toFixed(1);
-    const T_boil = getBoilingPoint(p);
+    const { fIce, fLiq, fGas, T_boil } = getPhaseFractions(T, p);
 
     if (tempValEl) tempValEl.innerText = `${T > 0 ? '+' : ''}${Math.round(T)} °C (${T_Kelvin} K)`;
     if (pressValEl) pressValEl.innerText = `${p.toFixed(2)} atm (${p_kPa} kPa)`;
     if (boilPtValEl) boilPtValEl.innerText = `${T_boil.toFixed(1)} °C`;
 
-    // Phase identification
+    // Phase identification badge
     if (phaseBadge) {
-      if (T <= 0) {
-        phaseBadge.innerText = '🧊 Led (Krystalická mřížka)';
+      if (fIce > 0.95) {
+        phaseBadge.innerText = '🧊 Led (100% Krystalická mřížka)';
         phaseBadge.style.color = '#38bdf8';
-      } else if (T >= T_boil) {
-        phaseBadge.innerText = '♨️ Vodní pára (Plyn / Expanze)';
+      } else if (fIce > 0.05 && fLiq > 0.05) {
+        const icePct = Math.round(fIce * 100);
+        const liqPct = Math.round(fLiq * 100);
+        phaseBadge.innerText = `🧊💧 Koexistence: Tání/Tuhnutí (${icePct}% Led + ${liqPct}% Voda)`;
+        phaseBadge.style.color = '#00f5d4';
+      } else if (fGas > 0.95) {
+        phaseBadge.innerText = '♨️ Vodní pára (100% Plyn / Expanze)';
+        phaseBadge.style.color = '#f59e0b';
+      } else if (fGas > 0.05 && fLiq > 0.05) {
+        const liqPct = Math.round(fLiq * 100);
+        const gasPct = Math.round(fGas * 100);
+        phaseBadge.innerText = `💧♨️ Koexistence: Var/Kondenzace (${liqPct}% Voda + ${gasPct}% Pára)`;
         phaseBadge.style.color = '#f59e0b';
       } else {
-        phaseBadge.innerText = '💧 Kapalná voda (Dynamická síť)';
+        phaseBadge.innerText = '💧 Kapalná voda (100% Kapalina / H-síť)';
         phaseBadge.style.color = '#10b981';
       }
     }
 
-    // Average molecule velocity in m/s (proportional to sqrt(T_K))
+    // Average molecule velocity in m/s
     const avgV_ms = Math.round(Math.sqrt(T_Kelvin) * 28.5);
     if (velocityValEl) velocityValEl.innerText = `${avgV_ms} m/s`;
   }
 
+  // Get coordinates of 2 Hydrogen atoms for molecule m
+  function getHydrogenCoords(m) {
+    return [
+      {
+        x: m.x + Math.cos(m.angle - HOH_HALF_ANGLE) * OH_DIST,
+        y: m.y + Math.sin(m.angle - HOH_HALF_ANGLE) * OH_DIST,
+        idx: 1
+      },
+      {
+        x: m.x + Math.cos(m.angle + HOH_HALF_ANGLE) * OH_DIST,
+        y: m.y + Math.sin(m.angle + HOH_HALF_ANGLE) * OH_DIST,
+        idx: 2
+      }
+    ];
+  }
+
+  // List of active hydrogen bonds for rendering: array of { hx, hy, ox, oy, strength }
+  const activeHBonds = [];
+
   // --- Physical Step & Force Integration ---
   function physicsStep() {
-    const T_boil = getBoilingPoint(p);
+    const { fIce, fLiq, fGas, T_boil } = getPhaseFractions(T, p);
     const T_Kelvin = T + 273.15;
     const thermalSpeed = Math.sqrt(Math.max(10, T_Kelvin)) * 0.08;
 
@@ -996,25 +1057,31 @@ function initWaterPhaseMDSimulator() {
     const boxLeft = 18;
     const boxRight = width - 145;
     const boxBottom = height - 18;
-    // Piston top bounds (higher pressure -> compressed volume)
-    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 12;
+    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 14;
 
-    const isIce = T <= 0;
-    const isGas = T >= T_boil;
-    const isLiquid = !isIce && !isGas;
+    // Assign phases to molecules based on coexistence fractions
+    const numIce = Math.round(N * fIce);
+    const numGas = Math.round(N * fGas);
+    const numLiq = N - numIce - numGas;
 
-    // 1. Reset H-bond counters
-    molecules.forEach(m => { m.hBondCount = 0; });
+    for (let i = 0; i < N; i++) {
+      if (i < numIce) molecules[i].phase = 'ice';
+      else if (i >= N - numGas) molecules[i].phase = 'gas';
+      else molecules[i].phase = 'liquid';
+      molecules[i].hBondCount = 0;
+    }
 
-    let totalHbonds = 0;
-    const HBOND_DIST_MAX = 42; // pixels
+    activeHBonds.length = 0;
 
-    // 2. Intermolecular Interactions (Lennard-Jones + Electrostatic H-bonding)
+    // 1. Intermolecular Interactions (Repulsion + Electrostatic O-H...O Alignment)
     for (let i = 0; i < N; i++) {
       const mi = molecules[i];
+      const h_i = getHydrogenCoords(mi);
 
       for (let j = i + 1; j < N; j++) {
         const mj = molecules[j];
+        const h_j = getHydrogenCoords(mj);
+
         const dx = mj.x - mi.x;
         const dy = mj.y - mi.y;
         const distSq = dx * dx + dy * dy;
@@ -1025,7 +1092,7 @@ function initWaterPhaseMDSimulator() {
           const overlap = 22 - dist;
           const nx = dx / dist;
           const ny = dy / dist;
-          const repForce = overlap * (isIce ? 0.35 : (isLiquid ? 0.25 : 0.45));
+          const repForce = overlap * (mi.phase === 'ice' && mj.phase === 'ice' ? 0.35 : 0.28);
 
           mi.vx -= nx * repForce;
           mi.vy -= ny * repForce;
@@ -1033,82 +1100,136 @@ function initWaterPhaseMDSimulator() {
           mj.vy += ny * repForce;
         }
 
-        // Hydrogen Bonding Attraction (d between 24 and 44 px in liquid & ice)
-        if (!isGas && dist >= 22 && dist < HBOND_DIST_MAX) {
-          const strength = isIce ? 0.06 : 0.035;
-          const idealD = 30;
+        // Hydrogen Bonding Interaction (d between 22 and 40 px)
+        // Occurs in Ice and Liquid, but not between two Gas molecules
+        const canHBond = !(mi.phase === 'gas' && mj.phase === 'gas');
+        if (canHBond && dist >= 22 && dist < 40) {
+          // Check H_i pointing to O_j
+          let bestHi = null;
+          let minD_Hi_Oj = 999;
+          for (let k = 0; k < 2; k++) {
+            const h = h_i[k];
+            const dH = Math.hypot(mj.x - h.x, mj.y - h.y);
+            if (dH < minD_Hi_Oj) {
+              minD_Hi_Oj = dH;
+              bestHi = h;
+            }
+          }
+
+          // Check H_j pointing to O_i
+          let bestHj = null;
+          let minD_Hj_Oi = 999;
+          for (let k = 0; k < 2; k++) {
+            const h = h_j[k];
+            const dH = Math.hypot(mi.x - h.x, mi.y - h.y);
+            if (dH < minD_Hj_Oi) {
+              minD_Hj_Oi = dH;
+              bestHj = h;
+            }
+          }
+
+          // Apply orientational torque so Hydrogen points to partner Oxygen!
+          if (bestHi && minD_Hi_Oj < 28) {
+            const angleToO = Math.atan2(mj.y - mi.y, mj.x - mi.x);
+            const hAngle = Math.atan2(bestHi.y - mi.y, bestHi.x - mi.x);
+            let diff = angleToO - hAngle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+
+            const torque = diff * (mi.phase === 'ice' ? 0.12 : 0.06);
+            mi.vRot += torque;
+
+            // Register active H-bond from bestHi to mj (Oxygen)
+            activeHBonds.push({
+              hx: bestHi.x,
+              hy: bestHi.y,
+              ox: mj.x,
+              oy: mj.y,
+              phase: mi.phase
+            });
+            mi.hBondCount++;
+            mj.hBondCount++;
+          }
+
+          if (bestHj && minD_Hj_Oi < 28) {
+            const angleToO = Math.atan2(mi.y - mj.y, mi.x - mj.x);
+            const hAngle = Math.atan2(bestHj.y - mj.y, bestHj.x - mj.x);
+            let diff = angleToO - hAngle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+
+            const torque = diff * (mj.phase === 'ice' ? 0.12 : 0.06);
+            mj.vRot += torque;
+          }
+
+          // Intermolecular attraction
+          const idealD = (mi.phase === 'ice' && mj.phase === 'ice') ? 29.5 : 27.5;
           const dDiff = dist - idealD;
           const nx = dx / dist;
           const ny = dy / dist;
+          const strength = (mi.phase === 'ice' && mj.phase === 'ice') ? 0.045 : 0.025;
 
           mi.vx += nx * dDiff * strength;
           mi.vy += ny * dDiff * strength;
           mj.vx -= nx * dDiff * strength;
           mj.vy -= ny * dDiff * strength;
-
-          mi.hBondCount++;
-          mj.hBondCount++;
-          totalHbonds++;
         }
       }
 
-      // 3. Phase-Specific Mechanics
-      if (isIce) {
-        // Lattice restoration spring force (pulls towards rigid hexagonal grid)
-        const iceStiffness = Math.min(0.2, ((-T) + 5) * 0.008);
+      // 2. Phase-Specific Mechanics
+      if (mi.phase === 'ice') {
+        // Crystalline ice: spring force towards hexagonal lattice anchor
+        const iceStiffness = Math.min(0.22, ((-T) + 12) * 0.009);
         const ldx = mi.lx - mi.x;
         const ldy = mi.ly - mi.y;
 
         mi.vx += ldx * iceStiffness;
         mi.vy += ldy * iceStiffness;
 
-        // Damping / Thermal vibration around lattice
-        mi.vx *= 0.88;
-        mi.vy *= 0.88;
-        mi.vx += (Math.random() - 0.5) * (thermalSpeed * 0.35);
-        mi.vy += (Math.random() - 0.5) * (thermalSpeed * 0.35);
+        // Damping / thermal vibration around crystal node
+        mi.vx *= 0.86;
+        mi.vy *= 0.86;
+        mi.vx += (Math.random() - 0.5) * (thermalSpeed * 0.3);
+        mi.vy += (Math.random() - 0.5) * (thermalSpeed * 0.3);
 
-        // Orientational lock
         const angDiff = mi.targetAngle - mi.angle;
         mi.vRot += angDiff * 0.1;
         mi.vRot *= 0.8;
         mi.angle += mi.vRot;
 
-      } else if (isLiquid) {
-        // Liquid: continuous diffusion, molecular tumbling and collective cohesion
-        // Weak gravity & cohesion towards bottom of container
-        mi.vy += 0.015;
+      } else if (mi.phase === 'liquid') {
+        // Liquid: fluid diffusion, collective gravity to container bottom, rotational tumbling
+        mi.vy += 0.02;
 
-        // Thermostat (gentle velocity rescaling towards target thermalSpeed)
-        const curSpeed = Math.sqrt(mi.vx * mi.vx + mi.vy * mi.vy) || 0.001;
+        const curSpeed = Math.hypot(mi.vx, mi.vy) || 0.001;
         const targetSpeed = thermalSpeed * 1.1;
-        mi.vx = (mi.vx / curSpeed) * (curSpeed * 0.95 + targetSpeed * 0.05);
-        mi.vy = (mi.vy / curSpeed) * (curSpeed * 0.95 + targetSpeed * 0.05);
+        mi.vx = (mi.vx / curSpeed) * (curSpeed * 0.94 + targetSpeed * 0.06);
+        mi.vy = (mi.vy / curSpeed) * (curSpeed * 0.94 + targetSpeed * 0.06);
 
-        mi.vx += (Math.random() - 0.5) * 0.25;
-        mi.vy += (Math.random() - 0.5) * 0.25;
+        mi.vx += (Math.random() - 0.5) * 0.22;
+        mi.vy += (Math.random() - 0.5) * 0.22;
 
-        mi.vRot += (Math.random() - 0.5) * 0.04;
+        mi.vRot += (Math.random() - 0.5) * 0.035;
         mi.vRot *= 0.92;
         mi.angle += mi.vRot;
 
       } else {
-        // Gas / Steam: Free Maxwell-Boltzmann thermal dispersion, fill entire container
-        const curSpeed = Math.sqrt(mi.vx * mi.vx + mi.vy * mi.vy) || 0.001;
-        const targetSpeed = thermalSpeed * 1.8;
+        // Gas / Steam: Free dispersion filling entire container, high thermal speed
+        const curSpeed = Math.hypot(mi.vx, mi.vy) || 0.001;
+        const targetSpeed = thermalSpeed * 1.9;
         mi.vx = (mi.vx / curSpeed) * (curSpeed * 0.9 + targetSpeed * 0.1);
         mi.vy = (mi.vy / curSpeed) * (curSpeed * 0.9 + targetSpeed * 0.1);
 
-        mi.vRot += (Math.random() - 0.5) * 0.1;
+        mi.vRot += (Math.random() - 0.5) * 0.08;
         mi.vRot *= 0.98;
         mi.angle += mi.vRot;
       }
 
-      // 4. Update Position
+      // 3. Update Position
       mi.x += mi.vx;
       mi.y += mi.vy;
 
-      // 5. Container Boundary Collisions with Elastic Bounce
+      // 4. Container Boundary Collisions with Elastic Bounce
       const rBound = O_RADIUS + 4;
       if (mi.x < boxLeft + rBound) { mi.x = boxLeft + rBound; mi.vx = Math.abs(mi.vx) * 0.85; }
       if (mi.x > boxRight - rBound) { mi.x = boxRight - rBound; mi.vx = -Math.abs(mi.vx) * 0.85; }
@@ -1118,10 +1239,10 @@ function initWaterPhaseMDSimulator() {
 
     // Update H-bonds per molecule metric
     if (hbondsCountEl) {
-      if (isGas) {
+      if (numGas === N) {
         hbondsCountEl.innerText = `0.1 / molekulu`;
       } else {
-        const avgHbonds = ((totalHbonds * 2) / N).toFixed(1);
+        const avgHbonds = ((activeHBonds.length * 2) / Math.max(1, numIce + numLiq)).toFixed(1);
         hbondsCountEl.innerText = `${avgHbonds} / molekulu`;
       }
     }
@@ -1139,7 +1260,7 @@ function initWaterPhaseMDSimulator() {
     const boxLeft = 18;
     const boxRight = width - 145;
     const boxBottom = height - 18;
-    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 12;
+    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 14;
 
     // 1. Draw Simulation Chamber (Walls & Piston)
     ctx.strokeStyle = '#334155';
@@ -1147,34 +1268,25 @@ function initWaterPhaseMDSimulator() {
     ctx.strokeRect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
 
     // Piston top plate (Pressure indicator)
-    ctx.fillStyle = 'rgba(51, 65, 85, 0.8)';
+    ctx.fillStyle = 'rgba(51, 65, 85, 0.85)';
     ctx.fillRect(boxLeft - 4, boxTop - 8, boxRight - boxLeft + 8, 8);
     ctx.fillStyle = '#10b981';
     ctx.font = 'bold 9px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`Píst: p = ${p.toFixed(2)} atm`, (boxLeft + boxRight) / 2, boxTop - 12);
 
-    // 2. Draw Hydrogen Bonds (Dashed Cyan Lines)
-    if (showHbonds && T < getBoilingPoint(p)) {
-      ctx.strokeStyle = T <= 0 ? 'rgba(0, 245, 212, 0.55)' : 'rgba(56, 189, 248, 0.4)';
-      ctx.lineWidth = T <= 0 ? 1.8 : 1.2;
+    // 2. Draw Hydrogen Bonds (Dashed Cyan Lines from H directly to O: O-H...O)
+    if (showHbonds) {
+      ctx.lineWidth = 1.4;
       ctx.setLineDash([3, 3]);
 
-      for (let i = 0; i < N; i++) {
-        const mi = molecules[i];
-        for (let j = i + 1; j < N; j++) {
-          const mj = molecules[j];
-          const dx = mj.x - mi.x;
-          const dy = mj.y - mi.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist >= 20 && dist < 42) {
-            ctx.beginPath();
-            ctx.moveTo(mi.x, mi.y);
-            ctx.lineTo(mj.x, mj.y);
-            ctx.stroke();
-          }
-        }
+      for (let k = 0; k < activeHBonds.length; k++) {
+        const hb = activeHBonds[k];
+        ctx.strokeStyle = hb.phase === 'ice' ? 'rgba(0, 245, 212, 0.75)' : 'rgba(56, 189, 248, 0.55)';
+        ctx.beginPath();
+        ctx.moveTo(hb.hx, hb.hy);
+        ctx.lineTo(hb.ox, hb.oy);
+        ctx.stroke();
       }
       ctx.setLineDash([]);
     }
@@ -1182,22 +1294,16 @@ function initWaterPhaseMDSimulator() {
     // 3. Draw Water Molecules (H2O)
     for (let i = 0; i < N; i++) {
       const m = molecules[i];
-
-      // Calculate 2 Hydrogen coordinates based on orientation angle
-      const halfAng = HOH_ANGLE / 2;
-      const h1x = m.x + Math.cos(m.angle - halfAng) * OH_DIST;
-      const h1y = m.y + Math.sin(m.angle - halfAng) * OH_DIST;
-      const h2x = m.x + Math.cos(m.angle + halfAng) * OH_DIST;
-      const h2y = m.y + Math.sin(m.angle + halfAng) * OH_DIST;
+      const [h1, h2] = getHydrogenCoords(m);
 
       // Covalent bonds (O-H)
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(m.x, m.y);
-      ctx.lineTo(h1x, h1y);
+      ctx.lineTo(h1.x, h1.y);
       ctx.moveTo(m.x, m.y);
-      ctx.lineTo(h2x, h2y);
+      ctx.lineTo(h2.x, h2.y);
       ctx.stroke();
 
       // Oxygen atom (Red sphere with specular gradient)
@@ -1211,15 +1317,15 @@ function initWaterPhaseMDSimulator() {
       ctx.arc(m.x, m.y, O_RADIUS, 0, Math.PI * 2);
       ctx.fill();
 
-      // Oxygen symbol / charge
+      // Oxygen symbol / delta negative indicator
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 7px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('O', m.x, m.y);
 
-      // Hydrogen atoms (White spheres)
-      [ { x: h1x, y: h1y }, { x: h2x, y: h2y } ].forEach(h => {
+      // Hydrogen atoms (White spheres with specular gradient)
+      [h1, h2].forEach(h => {
         const hGrad = ctx.createRadialGradient(h.x - 1, h.y - 1, 0.5, h.x, h.y, H_RADIUS);
         hGrad.addColorStop(0, '#ffffff');
         hGrad.addColorStop(0.6, '#e2e8f0');

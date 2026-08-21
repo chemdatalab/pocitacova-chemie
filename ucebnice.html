@@ -399,11 +399,13 @@
           </p>
 
           <!-- Preset State Buttons -->
-          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
-            <button class="btn btn-secondary btn-sm water-preset-btn active" data-temp="-15" data-press="1.0">🧊 Led (−15 °C, 1 atm)</button>
-            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="25" data-press="1.0">💧 Kapalná voda (25 °C, 1 atm)</button>
-            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="130" data-press="1.0">♨️ Vodní pára (130 °C, 1 atm)</button>
-            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="70" data-press="0.33">🏔️ Var na Everestu (70 °C, 0.33 atm)</button>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1rem;">
+            <button class="btn btn-secondary btn-sm water-preset-btn active" data-temp="-15" data-press="1.0">🧊 Led (−15 °C)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="0" data-press="1.0">🧊💧 Tání ledu (0 °C, 50% led + 50% voda)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="25" data-press="1.0">💧 Voda (+25 °C)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="100" data-press="1.0">💧♨️ Var vody (100 °C, 50% voda + 50% pára)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="140" data-press="1.0">♨️ Pára (140 °C)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="70" data-press="0.33">🏔️ Everest (70 °C, 0.33 atm)</button>
             <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="120" data-press="2.0">⚡ Tlakový hrnec (120 °C, 2 atm)</button>
           </div>
 
@@ -974,6 +976,29 @@
   </footer>
 
   <script src="assets/js/main.js"></script>
+  <script>
+    window.jsmeOnLoad = function() {
+      if (typeof JSApplet !== 'undefined' && document.getElementById('jsme-container')) {
+        try {
+          var container = document.getElementById('jsme-container');
+          var w = (container.clientWidth > 100 ? container.clientWidth : 360) + "px";
+          window.jsmeApplet = new JSApplet.JSME("jsme-container", w, "300px", {
+            "options": "oldlook,star"
+          });
+          window.jsmeApplet.setCallBack("AfterStructureModified", function(event) {
+            if (window.jsmeApplet && typeof window.updateChemoinformaticsFromJSME === 'function') {
+              var smiles = window.jsmeApplet.smiles();
+              window.updateChemoinformaticsFromJSME(smiles);
+            }
+          });
+          var initialSmiles = document.getElementById('cheminf-smiles-input') ? document.getElementById('cheminf-smiles-input').value : "CC(=O)Oc1ccccc1C(=O)O";
+          window.jsmeApplet.readGenericMolecularInput(initialSmiles);
+        } catch (e) {
+          console.warn("JSME Applet initialization error:", e);
+        }
+      }
+    };
+  </script>
   <script src="assets/js/jsme/jsme.nocache.js"></script>
   <script src="assets/js/exercises.js"></script>
 </body>
