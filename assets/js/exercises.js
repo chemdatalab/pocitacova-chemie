@@ -913,16 +913,16 @@ function initWaterPhaseMDSimulator() {
   const OH_DIST = 11.5; // pixels
   const HOH_HALF_ANGLE = (104.5 / 2) * (Math.PI / 180);
 
-  // Initialize Hexagonal Ice Lattice Coordinates (Cohesive bulk at bottom-left)
+  // Initialize Hexagonal Ice Lattice Coordinates (Resting on bottom floor of chamber)
   function initLattice() {
     molecules.length = 0;
     
-    // Ice hexagonal lattice: tight cohesive packing with hexagonal channels
-    // Spacing ~29.5 px (only ~8% less dense than liquid ~27.5 px)
-    const startX = 40;
-    const startY = 120;
+    // Ice hexagonal lattice: tight cohesive packing with hexagonal channels resting on floor
+    // Floor is at y ~ 320 px. Lattice sits at the bottom: y from ~188 to 308 px.
+    const startX = 96;
+    const startY = 188;
     const dx = 29.5;
-    const dy = 25.5;
+    const dy = 24.0;
 
     for (let r = 0; r < numRows; r++) {
       for (let c = 0; c < numCols; c++) {
@@ -936,8 +936,8 @@ function initWaterPhaseMDSimulator() {
         molecules.push({
           x: lx,
           y: ly,
-          vx: (Math.random() - 0.5) * 0.4,
-          vy: (Math.random() - 0.5) * 0.4,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
           lx: lx, // Lattice anchor X
           ly: ly, // Lattice anchor Y
           angle: baseAng,
@@ -1178,7 +1178,9 @@ function initWaterPhaseMDSimulator() {
 
       // 2. Phase-Specific Mechanics
       if (mi.phase === 'ice') {
-        // Crystalline ice: spring force towards hexagonal lattice anchor
+        // Crystalline ice: grounded at bottom, spring force towards hexagonal lattice anchor
+        mi.vy += 0.025; // Solid weight / gravity
+
         const iceStiffness = Math.min(0.22, ((-T) + 12) * 0.009);
         const ldx = mi.lx - mi.x;
         const ldy = mi.ly - mi.y;
@@ -1198,8 +1200,8 @@ function initWaterPhaseMDSimulator() {
         mi.angle += mi.vRot;
 
       } else if (mi.phase === 'liquid') {
-        // Liquid: fluid diffusion, collective gravity to container bottom, rotational tumbling
-        mi.vy += 0.02;
+        // Liquid: dense fluid falling to container bottom under gravity, fluid diffusion & tumbling
+        mi.vy += 0.055; // Downward gravity
 
         const curSpeed = Math.hypot(mi.vx, mi.vy) || 0.001;
         const targetSpeed = thermalSpeed * 1.1;
@@ -1214,7 +1216,7 @@ function initWaterPhaseMDSimulator() {
         mi.angle += mi.vRot;
 
       } else {
-        // Gas / Steam: Free dispersion filling entire container, high thermal speed
+        // Gas / Steam: Free dispersion filling entire container, high thermal speed overcoming gravity
         const curSpeed = Math.hypot(mi.vx, mi.vy) || 0.001;
         const targetSpeed = thermalSpeed * 1.9;
         mi.vx = (mi.vx / curSpeed) * (curSpeed * 0.9 + targetSpeed * 0.1);
@@ -1229,12 +1231,17 @@ function initWaterPhaseMDSimulator() {
       mi.x += mi.vx;
       mi.y += mi.vy;
 
-      // 4. Container Boundary Collisions with Elastic Bounce
+      // 4. Container Boundary Collisions with Damped Bounce on Floor
       const rBound = O_RADIUS + 4;
       if (mi.x < boxLeft + rBound) { mi.x = boxLeft + rBound; mi.vx = Math.abs(mi.vx) * 0.85; }
       if (mi.x > boxRight - rBound) { mi.x = boxRight - rBound; mi.vx = -Math.abs(mi.vx) * 0.85; }
       if (mi.y < boxTop + rBound) { mi.y = boxTop + rBound; mi.vy = Math.abs(mi.vy) * 0.85; }
-      if (mi.y > boxBottom - rBound) { mi.y = boxBottom - rBound; mi.vy = -Math.abs(mi.vy) * 0.85; }
+      if (mi.y > boxBottom - rBound) {
+        mi.y = boxBottom - rBound;
+        // Gas bounces elastically, condensed liquid and ice settle at floor
+        const bounceCoeff = mi.phase === 'gas' ? 0.85 : 0.4;
+        mi.vy = -Math.abs(mi.vy) * bounceCoeff;
+      }
     }
 
     // Update H-bonds per molecule metric
