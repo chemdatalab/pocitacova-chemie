@@ -536,66 +536,50 @@
         </div>
 
         <p>
-          <strong>Chemická informatika (chemoinformatika)</strong> propojuje chemii s datovou vědou a počítači. Místo zdlouhavých fyzikálních simulací reprezentuje molekuly jako data a umožňuje prohledávat knihovny se <strong>stovkami milionů sloučenin</strong> během zlomku vteřiny.
+          <strong>Chemická informatika (chemoinformatika)</strong> převádí chemické vzorce do počítačového kódu. Místo zdlouhavých fyzikálních simulací reprezentuje molekuly jako data (např. textový zápis <strong>SMILES</strong>) a umožňuje prohledávat databáze se <strong>stovkami milionů sloučenin</strong> během zlomku vteřiny.
         </p>
 
-        <!-- Concise Theory: Representation & Lipinski -->
+        <!-- Concise High-School Friendly Cards -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1.25rem 0;">
           <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem;">
-            <h4 style="font-size: 1rem; color: var(--up-cyan); margin-bottom: 0.4rem;">📝 Jak počítač kóduje molekulu?</h4>
-            <ul style="font-size: 0.86rem; color: var(--text-muted); padding-left: 1.2rem; margin-bottom: 0; display: flex; flex-direction: column; gap: 0.35rem;">
-              <li><strong>SMILES:</strong> Textový zápis struktury (např. <code>c1ccccc1</code> pro benzen, <code>CCO</code> pro ethanol).</li>
-              <li><strong>InChIKey:</strong> 27místný kontrolní hash řetězec IUPAC pro vyhledávání v databázích.</li>
-              <li><strong>Molekulární graf (MOL / SDF):</strong> Atomy jako vrcholy, kovalentní vazby jako hrany grafu.</li>
-            </ul>
+            <h4 style="font-size: 1rem; color: var(--up-cyan); margin-bottom: 0.4rem;">📝 Jak počítač zapisuje molekulu?</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+              Každou molekulu lze zapsat jako jednoduchý textový řetězec <strong>SMILES</strong>:
+            </p>
+            <div style="font-size: 0.82rem; font-family: var(--font-mono); color: #cbd5e1; display: flex; flex-direction: column; gap: 0.2rem;">
+              <span>• Benzen: <code>c1ccccc1</code></span>
+              <span>• Ethanol: <code>CCO</code></span>
+              <span>• Aspirin: <code>CC(=O)Oc1ccccc1C(=O)O</code></span>
+            </div>
           </div>
 
           <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem;">
-            <h4 style="font-size: 1rem; color: #10b981; margin-bottom: 0.4rem;">💊 Lipinského pravidlo pěti (Rule of 5)</h4>
-            <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
-              Předpovídá, zda má molekula šanci stát se účinným perorálním lékem (vstřebatelným trávicím traktem):
+            <h4 style="font-size: 1rem; color: #10b981; margin-bottom: 0.4rem;">💊 Lipinského pravidlo pěti (Lékovost)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+              Jednoduché pravidlo určuje, zda se molekula může stát úspěšným lékem v tabletě (vstřebatelným ze žaludku do krve):
             </p>
-            <div style="font-size: 0.84rem; color: var(--text-subtle); display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem;">
-              <span>• <i>MW</i> ≤ 500 g/mol</span>
-              <span>• log<i>P</i> ≤ 5 (lipofilita)</span>
-              <span>• H-donory ≤ 5 (OH, NH)</span>
-              <span>• H-akceptory ≤ 10 (O, N)</span>
+            <div style="font-size: 0.82rem; color: var(--text-subtle); display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem;">
+              <span>• Hmotnost <i>MW</i> ≤ 500 g/mol</span>
+              <span>• Mastnota log<i>P</i> ≤ 5</span>
+              <span>• H-dárci ≤ 5 (-OH, -NH)</span>
+              <span>• H-příjemci ≤ 10 (O, N)</span>
             </div>
           </div>
         </div>
 
-        <!-- Explanation: How descriptors are calculated -->
-        <div style="background: rgba(0, 180, 216, 0.08); border: 1px solid rgba(0, 180, 216, 0.3); border-radius: var(--radius-md); padding: 1.1rem; margin-bottom: 1.25rem;">
-          <h4 style="font-size: 0.98rem; color: var(--up-blue-light); margin-bottom: 0.5rem;">⚙️ Čím a jak se molekulární deskriptory počítají?</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-            V moderní vědecké praxi a farmaceutickém průmyslu se k výpočtu deskriptorů využívají chemoinformatické knihovny <strong>RDKit</strong> (standard pro Python / C++), <strong>CDK</strong> (Chemistry Development Kit) a <strong>Open Babel</strong>. Tyto nástroje využívají exaktní matematické a empirické algoritmy:
-          </p>
-          <ul style="font-size: 0.84rem; color: var(--text-muted); padding-left: 1.2rem; margin-bottom: 0; display: flex; flex-direction: column; gap: 0.3rem;">
-            <li><strong>Molekulová hmotnost (MW):</strong> Exaktní sumace atomových hmotností z grafu molekuly podle tabulek IUPAC.</li>
-            <li><strong>Lipofilita (logP):</strong> <em>Wildman–Crippen model</em> rozkládá molekulu na 68 atomových typů a sčítá jejich experimentálně kalibrované hydrofobní příspěvky (SlogP).</li>
-            <li><strong>Rozpustnost ve vodě (logS):</strong> <em>Delaneyho ESOL model</em> počítá rozpustnost ze vzorce: log<i>S</i> = 0.16 − 0.63·log<i>P</i> − 0.0062·<i>MW</i> + 0.066·<i>RotB</i> − 0.74·(Aromatický podíl).</li>
-            <li><strong>Polární povrch (TPSA):</strong> <em>Ertl–Rohde topologický algoritmus</em> sčítá 2D tabulkové plochy atomů O, N a jejich navázaných H bez nutnosti generovat náročnou 3D konformaci.</li>
-            <li><strong>H-donory / akceptory a aromatické kruhy:</strong> Hledání podstruktur pomocí chemických regulárních výrazů (<strong>SMARTS</strong>) a detekce cyklů (SSSR algoritmus).</li>
-          </ul>
-        </div>
-
-        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-          Výzkumníci na Katedře fyzikální chemie PřF UPOL pracují v rámci infrastruktury <strong>ELIXIR CZ</strong> s celosvětovými databázemi <strong>ChEMBL</strong> (2,4+ milionu bioaktivních látek), <strong>PubChem</strong> (115+ milionů struktur) a <strong>ZINC</strong> (miliardy sloučenin pro virtuální screening).
-        </p>
-
-        <!-- Interactive Exercise 5: Ketcher Molecular Sketcher & Descriptors -->
+        <!-- Interactive Exercise 5: JSME Molecular Editor & Descriptors -->
         <div class="interactive-box" style="margin-top: 1.5rem;">
           <div class="interactive-header">
             <span class="interactive-badge">⚡ Interaktivní cvičení 5</span>
-            <h4 style="font-size: 1.15rem; margin-bottom: 0;">2D Editor molekul (Ketcher / SmilesDrawer) & kalkulátor vlastností</h4>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Molekulární editor (JSME) & živý kalkulátor vlastností léčiv</h4>
           </div>
           <p style="font-size: 0.9rem; margin-bottom: 1rem;">
-            Nakreslete vlastní molekulu na plátno pomocí tlačítek a šablon, nebo vyberte předvolené léčivo. Editor v reálném čase generuje <strong>SMILES</strong>, vykresluje profesionální 2D strukturu (včetně aromatických jader) a počítá molekulární deskriptory podle standardů RDKit.
+            Přímo v editoru <strong>JSME</strong> můžete molekuly kreslit, upravovat jejich vazby, přidávat atomy či benzenové kruhy. Kalkulátor v reálném čase počítá <strong>molekulární deskriptory</strong> a vyhodnocuje Lipinského pravidlo lékovosti. <em>(Najeďte myší na ℹ️ pro vysvětlení jednotlivých hodnot).</em>
           </p>
 
           <!-- Preset Buttons -->
           <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; margin-bottom: 0.85rem;">
-            <span style="font-size: 0.84rem; font-weight: 600; color: var(--text-main);">Předvolby:</span>
+            <span style="font-size: 0.84rem; font-weight: 600; color: var(--text-main);">Předvolby léčiv:</span>
             <button class="btn btn-secondary btn-sm cheminf-preset-btn active" data-smiles="CC(=O)Oc1ccccc1C(=O)O" data-name="Kyselina acetylsalicylová (Aspirin)">Aspirin</button>
             <button class="btn btn-secondary btn-sm cheminf-preset-btn" data-smiles="Cn1cnc2c1c(=O)n(c(=O)n2C)C" data-name="Kofein">Kofein</button>
             <button class="btn btn-secondary btn-sm cheminf-preset-btn" data-smiles="CC(C)Cc1ccc(cc1)C(C)C(=O)O" data-name="Ibuprofen">Ibuprofen</button>
@@ -604,101 +588,119 @@
             <button class="btn btn-secondary btn-sm cheminf-preset-btn" data-smiles="OC[C@H]1OC(O)[C@H](O)[C@@H](O)[C@@H]1O" data-name="D-Glukóza">Glukóza</button>
           </div>
 
-          <!-- Ketcher Editor & Toolbar Grid -->
-          <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.25rem;">
-            <!-- Ketcher Drawing Canvas Box -->
+          <!-- JSME Editor & Descriptors Grid -->
+          <div style="display: grid; grid-template-columns: minmax(320px, 380px) 1fr; gap: 1.25rem;">
+            <!-- JSME Applet Container Box -->
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem; display: flex; flex-direction: column; gap: 0.65rem;">
-              <!-- Drawing Tools Toolbar -->
-              <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; background: var(--bg-primary); padding: 0.4rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <div style="display: flex; gap: 0.25rem; align-items: center; border-right: 1px solid var(--border-color); padding-right: 0.4rem;">
-                  <button id="ketcher-tool-bond1" class="ketcher-tool-btn active" title="Jednoduchá vazba">—</button>
-                  <button id="ketcher-tool-bond2" class="ketcher-tool-btn" title="Dvojná vazba">=</button>
-                  <button id="ketcher-tool-benzene" class="ketcher-tool-btn" title="Benzenový kruh">⬡</button>
-                </div>
-                <div style="display: flex; gap: 0.25rem; align-items: center; border-right: 1px solid var(--border-color); padding-right: 0.4rem;">
-                  <button class="ketcher-atom-btn active" data-atom="C" style="color: var(--text-main); font-weight: 700;">C</button>
-                  <button class="ketcher-atom-btn" data-atom="N" style="color: var(--up-blue-light); font-weight: 700;">N</button>
-                  <button class="ketcher-atom-btn" data-atom="O" style="color: #dc2626; font-weight: 700;">O</button>
-                  <button class="ketcher-atom-btn" data-atom="S" style="color: #d97706; font-weight: 700;">S</button>
-                  <button class="ketcher-atom-btn" data-atom="Cl" style="color: #16a34a; font-weight: 700;">Cl</button>
-                  <button class="ketcher-atom-btn" data-atom="F" style="color: #0284c7; font-weight: 700;">F</button>
-                </div>
-                <div style="display: flex; gap: 0.25rem; align-items: center;">
-                  <button id="ketcher-tool-erase" class="ketcher-tool-btn" title="Guma (smazat kliknutý atom)">🧹</button>
-                  <button id="ketcher-tool-clear" class="ketcher-tool-btn" title="Vyčistit plátno">🗑️</button>
-                </div>
-              </div>
+              <!-- JSME Target Div -->
+              <div id="jsme-container" style="width: 100%; height: 300px; border-radius: var(--radius-sm); overflow: hidden; background: #ffffff; border: 1px solid var(--border-color);"></div>
 
-              <!-- Canvas / SVG Area -->
-              <div id="cheminf-draw-container" style="position: relative; width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                <svg id="cheminf-svg" viewBox="0 0 300 210" style="width: 100%; height: 100%; display: block; cursor: crosshair;"></svg>
-                <div id="ketcher-hint" style="position: absolute; bottom: 4px; left: 8px; font-size: 0.72rem; color: #64748b; pointer-events: none;">
-                  🖱️ Klikněte pro přidání atomu / vazby
-                </div>
-              </div>
-
-              <!-- SMILES Input / Output -->
+              <!-- SMILES Input & Formula -->
               <div style="display: flex; gap: 0.4rem; align-items: center;">
-                <input type="text" id="cheminf-smiles-input" value="CC(=O)Oc1ccccc1C(=O)O" style="flex-grow: 1; font-family: var(--font-mono); font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-main); font-weight: 600;">
+                <input type="text" id="cheminf-smiles-input" value="CC(=O)Oc1ccccc1C(=O)O" style="flex-grow: 1; font-family: var(--font-mono); font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-main); font-weight: 600;" title="SMILES kód molekuly">
                 <button id="cheminf-calc-btn" class="btn btn-primary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">⚡ Načíst</button>
               </div>
 
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-subtle);">
-                <span id="cheminf-formula" style="font-family: var(--font-mono); font-weight: 700; color: var(--text-main);">C₉H₈O₄</span>
-                <a href="https://lifescience.opensource.epam.com/ketcher/" target="_blank" style="color: var(--up-cyan); text-decoration: none;">Otevřít plný Ketcher ↗</a>
+                <span>Vzorec: <strong id="cheminf-formula" style="font-family: var(--font-mono); color: var(--up-cyan);">C₉H₈O₄</strong></span>
+                <span style="color: #64748b;">✏️ Kreslete přímo v JSME editoru</span>
               </div>
             </div>
 
-            <!-- Descriptors Table & Lipinski Checker -->
+            <!-- Descriptors Grid & Explanatory Bubbles -->
             <div style="display: flex; flex-direction: column; gap: 0.75rem;">
               <h5 id="cheminf-mol-name" style="font-size: 0.98rem; color: var(--up-cyan); margin-bottom: 0;">
                 Kyselina acetylsalicylová (Aspirin)
               </h5>
 
-              <!-- Descriptors Grid -->
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">Mol. hmotnost (MW):</span><br>
-                  <strong id="desc-mw" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--up-blue-light);">180.16 g/mol</strong>
+              <!-- 9 Descriptor Cards with Explanatory Tooltips -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem;">
+                <!-- 1. MW -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Molekulová hmotnost (MW): Součet hmotností všech atomů. Léčiva mívají MW do 500 g/mol, aby snadno prošla buněčnými membránami do krve.">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">Hmotnost (MW):</span>
+                    <span style="font-size: 0.72rem; color: var(--up-cyan);">ℹ️</span>
+                  </div>
+                  <strong id="desc-mw" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--up-blue-light);">180.16 g/mol</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">Lipofilita (logP):</span><br>
-                  <strong id="desc-logp" style="font-family: var(--font-mono); font-size: 0.92rem; color: #f59e0b;">1.31</strong>
+
+                <!-- 2. logP -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Lipofilita (logP): Udává, jak moc je molekula 'mastná' (rozpustná v tucích). Vyšší logP = lépe proniká přes tukové membrány buněk. Ideál pro léky: 0 až 3 (max 5).">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">Mastnota (logP):</span>
+                    <span style="font-size: 0.72rem; color: #f59e0b);">ℹ️</span>
+                  </div>
+                  <strong id="desc-logp" style="font-family: var(--font-mono); font-size: 0.9rem; color: #f59e0b;">1.31</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">Rozpustnost (logS):</span><br>
-                  <strong id="desc-logs" style="font-family: var(--font-mono); font-size: 0.92rem; color: #10b981;">-2.18 (dobrá)</strong>
+
+                <!-- 3. logS -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Rozpustnost (logS): Schopnost rozpouštět se ve vodě a krevní plazmě. Hodnota větší než −4 znamená bezproblémové rozpuštění v žaludku a krvi.">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">Rozpustnost (logS):</span>
+                    <span style="font-size: 0.72rem; color: #10b981;">ℹ️</span>
+                  </div>
+                  <strong id="desc-logs" style="font-family: var(--font-mono); font-size: 0.9rem; color: #10b981;">-2.18 (dobrá)</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">H-donory (HBD):</span><br>
-                  <strong id="desc-hbd" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--text-main);">1</strong>
+
+                <!-- 4. HBD -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Dárci vodíkových vazeb (HBD): Počet skupin -OH a -NH schopných darovat vodík do H-můstku. Limit pro léky je maximálně 5.">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">H-dárci (HBD):</span>
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">ℹ️</span>
+                  </div>
+                  <strong id="desc-hbd" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-main);">1</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">H-akceptory (HBA):</span><br>
-                  <strong id="desc-hba" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--text-main);">4</strong>
+
+                <!-- 5. HBA -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Příjemci vodíkových vazeb (HBA): Počet atomů kyslíku a dusíku, které H-můstek přijímají. Limit pro léky je maximálně 10.">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">H-příjemci (HBA):</span>
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">ℹ️</span>
+                  </div>
+                  <strong id="desc-hba" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-main);">4</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">Polární povrch (TPSA):</span><br>
-                  <strong id="desc-tpsa" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--text-main);">63.6 Å²</strong>
+
+                <!-- 6. TPSA -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Polární povrch (TPSA): Plocha tvořená polárními atomy (O, N). Pod 140 Å² značí dobré vstřebávání ve střevech, pod 90 Å² schopnost proniknout do mozku.">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">Polární plocha (TPSA):</span>
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">ℹ️</span>
+                  </div>
+                  <strong id="desc-tpsa" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-main);">63.6 Å²</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">Rotovatelné vazby:</span><br>
-                  <strong id="desc-rotb" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--text-main);">3</strong>
+
+                <!-- 7. RotB -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Ohebné vazby (RotB): Počet jednoduchých vazeb, kolem kterých se molekula může volně otáčet. Určuje flexibilitu molekuly při usazení do enzymu.">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">Ohebné vazby:</span>
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">ℹ️</span>
+                  </div>
+                  <strong id="desc-rotb" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-main);">3</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">Aromatické kruhy:</span><br>
-                  <strong id="desc-aroma" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--text-main);">1</strong>
+
+                <!-- 8. Aromatic rings -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Aromatické kruhy: Počet benzenových a aromatických jader v molekule. Dodávají tvarovou stálost a vážou se na proteiny.">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">Aromatické kruhy:</span>
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">ℹ️</span>
+                  </div>
+                  <strong id="desc-aroma" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-main);">1</strong>
                 </div>
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
-                  <span style="font-size: 0.72rem; color: var(--text-subtle);">Počet těžkých atomů:</span><br>
-                  <strong id="desc-heavy" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--text-main);">13</strong>
+
+                <!-- 9. Heavy atoms -->
+                <div class="desc-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.55rem; cursor: help;" title="Těžké atomy: Počet všech atomů kromě lehkých vodíků (uhlíky, kyslíky, dusíky, halogeny...).">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">Těžké atomy:</span>
+                    <span style="font-size: 0.72rem; color: var(--text-subtle);">ℹ️</span>
+                  </div>
+                  <strong id="desc-heavy" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-main);">13</strong>
                 </div>
               </div>
 
               <!-- Lipinski Rule of 5 Checker Card -->
               <div id="lipinski-card" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.82rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                  <strong style="color: #10b981; font-size: 0.88rem;">⚖️ Lipinski Rule of 5:</strong>
+                  <strong style="color: #10b981; font-size: 0.88rem;">⚖️ Lipinski Rule of 5 (Lékovost):</strong>
                   <span id="lipinski-verdict" style="font-weight: 700; color: #10b981;">✅ 0 porušení (vysoká lékovost)</span>
                 </div>
                 <div id="lipinski-details" style="display: flex; flex-wrap: wrap; gap: 0.65rem; color: var(--text-muted); font-size: 0.76rem;">
@@ -972,7 +974,7 @@
   </footer>
 
   <script src="assets/js/main.js"></script>
-  <script src="assets/js/smiles-drawer.min.js"></script>
+  <script src="assets/js/jsme/jsme.nocache.js"></script>
   <script src="assets/js/exercises.js"></script>
 </body>
 </html>

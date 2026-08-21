@@ -1730,10 +1730,36 @@ function initCoarseGrainedMolstarViewer() {
 }
 
 /* ==========================================================================
-   5. Kapitola 5: Interaktivní chemoinformatická laboratoř & kalkulátor deskriptorů
+   5. Kapitola 5: JSME Molekulární editor & kalkulátor vlastností léčiv
    ========================================================================== */
+
+// Global JSME loader callback
+window.jsmeOnLoad = function() {
+  if (typeof JSApplet !== 'undefined' && document.getElementById('jsme-container')) {
+    try {
+      window.jsmeApplet = new JSApplet.JSME("jsme-container", "100%", "300px", {
+        "options": "oldlook,star"
+      });
+
+      // Event triggered whenever user draws/modifies structure in JSME
+      window.jsmeApplet.setCallBack("AfterStructureModified", function(event) {
+        if (window.jsmeApplet && typeof window.updateChemoinformaticsFromJSME === 'function') {
+          const currentSmiles = window.jsmeApplet.smiles();
+          window.updateChemoinformaticsFromJSME(currentSmiles);
+        }
+      });
+
+      // Load initial default structure (Aspirin)
+      const initialSmiles = document.getElementById('cheminf-smiles-input')?.value || "CC(=O)Oc1ccccc1C(=O)O";
+      window.jsmeApplet.readGenericMolecularInput(initialSmiles);
+    } catch (e) {
+      console.warn("JSME Applet initialization error:", e);
+    }
+  }
+};
+
 function initChemoinformaticsLab() {
-  const svgEl = document.getElementById('cheminf-svg');
+  const container = document.getElementById('jsme-container');
   const smilesInput = document.getElementById('cheminf-smiles-input');
   const calcBtn = document.getElementById('cheminf-calc-btn');
   const molNameEl = document.getElementById('cheminf-mol-name');
@@ -1754,50 +1780,7 @@ function initChemoinformaticsLab() {
   const lipinskiVerdict = document.getElementById('lipinski-verdict');
   const lipinskiDetails = document.getElementById('lipinski-details');
 
-  if (!svgEl || !smilesInput) return;
-
-  // Initialize SmiDrawer (SmilesDrawer 2D engine)
-  let smiDrawer = null;
-  if (typeof SmiDrawer !== 'undefined') {
-    smiDrawer = new SmiDrawer({
-      width: 300,
-      height: 210,
-      bondThickness: 2.0,
-      bondLength: 20,
-      shortBondLength: 0.85,
-      bondSpacing: 0.18,
-      isDark: true,
-      compactDrawing: false,
-      themes: {
-        dark: {
-          C: '#cbd5e1',
-          O: '#ef4444',
-          N: '#38bdf8',
-          F: '#06b6d4',
-          CL: '#22c55e',
-          BR: '#a855f7',
-          I: '#ec4899',
-          P: '#f97316',
-          S: '#eab308',
-          B: '#f43f5e',
-          SI: '#64748b',
-          H: '#ffffff',
-          BACKGROUND: '#060b17'
-        }
-      }
-    });
-  } else if (typeof SmilesDrawer !== 'undefined' && SmilesDrawer.SmiDrawer) {
-    smiDrawer = new SmilesDrawer.SmiDrawer({
-      width: 300,
-      height: 210,
-      bondThickness: 2.0,
-      bondLength: 20,
-      shortBondLength: 0.85,
-      bondSpacing: 0.18,
-      isDark: true,
-      compactDrawing: false
-    });
-  }
+  if (!container || !smilesInput) return;
 
   // Preset Molecules Database
   const presets = {
@@ -1964,68 +1947,6 @@ function initChemoinformaticsLab() {
     };
   }
 
-  function renderMolecule(smiles) {
-    if (!svgEl) return;
-    svgEl.innerHTML = '';
-
-    if (!smiles || !smiles.trim()) {
-      svgEl.innerHTML = '<text x="150" y="105" fill="#64748b" font-size="12" font-family="Inter, sans-serif" text-anchor="middle">Prázdné plátno. Zvolte předvolbu nebo kreslete.</text>';
-      return;
-    }
-
-    if (smiDrawer) {
-      try {
-        smiDrawer.draw(smiles, svgEl, 'dark', () => {
-          // Successful draw
-        }, (err) => {
-          console.warn('SmilesDrawer error for smiles:', smiles, err);
-          renderSvgFallback(svgEl, smiles);
-        });
-      } catch (e) {
-        console.warn('SmilesDrawer exception:', e);
-        renderSvgFallback(svgEl, smiles);
-      }
-    } else {
-      renderSvgFallback(svgEl, smiles);
-    }
-  }
-
-  function renderSvgFallback(svg, smiles) {
-    let svgContent = `<rect width="300" height="210" fill="#060b17"/>`;
-    const isArom = smiles.includes('c1') || smiles.includes('c');
-
-    if (isArom) {
-      // Draw accurate benzene ring in SVG
-      const cx = 130, cy = 105, r = 32;
-      let points = [];
-      for (let i = 0; i < 6; i++) {
-        const ang = (i * Math.PI) / 3;
-        points.push(`${cx + r * Math.cos(ang)},${cy + r * Math.sin(ang)}`);
-      }
-      svgContent += `
-        <polygon points="${points.join(' ')}" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linejoin="round"/>
-        <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="none" stroke="rgba(56, 189, 248, 0.45)" stroke-width="1.5"/>
-        <line x1="${cx + r}" y1="${cy}" x2="${cx + r + 30}" y2="${cy}" stroke="#cbd5e1" stroke-width="2"/>
-        <line x1="${cx - r}" y1="${cy}" x2="${cx - r - 30}" y2="${cy}" stroke="#cbd5e1" stroke-width="2"/>
-        <text x="${cx + r + 36}" y="${cy + 4}" fill="#ef4444" font-weight="bold" font-size="12" font-family="Inter, sans-serif">R₁</text>
-        <text x="${cx - r - 48}" y="${cy + 4}" fill="#38bdf8" font-weight="bold" font-size="12" font-family="Inter, sans-serif">R₂</text>
-      `;
-    } else {
-      // Zig-zag chain
-      let d = 'M 40,110 ';
-      const count = Math.min(Math.max(smiles.length, 3), 8);
-      for (let i = 0; i < count; i++) {
-        const x = 60 + i * 26;
-        const y = 110 + (i % 2 === 0 ? -22 : 22);
-        d += `L ${x},${y} `;
-      }
-      svgContent += `<path d="${d}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-    }
-
-    svgContent += `<text x="150" y="195" fill="#94a3b8" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">${smiles.length > 32 ? smiles.substring(0, 31) + '...' : smiles}</text>`;
-    svg.innerHTML = svgContent;
-  }
-
   function updateUI(mol) {
     if (molNameEl) molNameEl.innerText = mol.name;
     if (formulaEl) formulaEl.innerText = mol.formula;
@@ -2084,98 +2005,52 @@ function initChemoinformaticsLab() {
         <span style="color: ${vHBA ? '#ef4444' : '#10b981'};">HBA ≤ 10: ${vHBA ? '❌' : '✅'} (${mol.hba})</span>
       `;
     }
-
-    renderMolecule(mol.smiles);
   }
 
-  // --- Interactive Ketcher Drawing Tools ---
-  let activeTool = 'bond1';
-  let activeAtom = 'C';
-  const toolBond1 = document.getElementById('ketcher-tool-bond1');
-  const toolBond2 = document.getElementById('ketcher-tool-bond2');
-  const toolBenzene = document.getElementById('ketcher-tool-benzene');
-  const toolErase = document.getElementById('ketcher-tool-erase');
-  const toolClear = document.getElementById('ketcher-tool-clear');
-  const atomBtns = document.querySelectorAll('.ketcher-atom-btn');
-  const toolBtns = document.querySelectorAll('.ketcher-tool-btn');
-
-  function setTool(toolName) {
-    activeTool = toolName;
-    toolBtns.forEach(b => b.classList.remove('active'));
-    if (toolName === 'bond1' && toolBond1) toolBond1.classList.add('active');
-    if (toolName === 'bond2' && toolBond2) toolBond2.classList.add('active');
-    if (toolName === 'benzene' && toolBenzene) toolBenzene.classList.add('active');
-    if (toolName === 'erase' && toolErase) toolErase.classList.add('active');
-  }
-
-  if (toolBond1) toolBond1.addEventListener('click', () => setTool('bond1'));
-  if (toolBond2) toolBond2.addEventListener('click', () => setTool('bond2'));
-  if (toolBenzene) toolBenzene.addEventListener('click', () => setTool('benzene'));
-  if (toolErase) toolErase.addEventListener('click', () => setTool('erase'));
-
-  if (toolClear) {
-    toolClear.addEventListener('click', () => {
-      smilesInput.value = '';
-      const mol = parseAndComputeSMILES('');
-      updateUI(mol);
-    });
-  }
-
-  atomBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      atomBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeAtom = btn.getAttribute('data-atom') || 'C';
-      if (activeTool === 'erase') setTool('bond1');
-    });
-  });
-
-  // SVG Click: add atoms, rings or bonds
-  svgEl.addEventListener('click', (e) => {
-    let curSmiles = (smilesInput.value || '').trim();
-
-    if (activeTool === 'erase') {
-      if (curSmiles.length > 1) {
-        curSmiles = curSmiles.slice(0, -1);
-      } else {
-        curSmiles = '';
-      }
-    } else if (activeTool === 'benzene') {
-      if (!curSmiles) curSmiles = 'c1ccccc1';
-      else curSmiles += 'c1ccccc1';
-    } else if (activeTool === 'bond2') {
-      curSmiles += (activeAtom === 'O' ? '=O' : `=${activeAtom}`);
-    } else {
-      // Single bond with active atom
-      if (activeAtom === 'O') curSmiles += 'O';
-      else if (activeAtom === 'N') curSmiles += 'N';
-      else if (activeAtom === 'S') curSmiles += 'S';
-      else if (activeAtom === 'Cl') curSmiles += 'Cl';
-      else if (activeAtom === 'F') curSmiles += 'F';
-      else curSmiles += 'C';
-    }
-
-    smilesInput.value = curSmiles;
-    const mol = parseAndComputeSMILES(curSmiles);
+  // Hook up callback from JSME editor
+  window.updateChemoinformaticsFromJSME = function(smiles) {
+    smilesInput.value = smiles;
+    presetBtns.forEach(b => b.classList.remove('active'));
+    const mol = parseAndComputeSMILES(smiles);
     updateUI(mol);
-  });
+  };
 
-  // --- Preset & Input Event Listeners ---
+  // Preset Buttons Click
   presetBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       presetBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const smiles = btn.getAttribute('data-smiles');
       smilesInput.value = smiles;
+      
+      // Update JSME applet if initialized
+      if (window.jsmeApplet && typeof window.jsmeApplet.readGenericMolecularInput === 'function') {
+        try {
+          window.jsmeApplet.readGenericMolecularInput(smiles);
+        } catch (e) {
+          console.warn("Could not pass smiles to JSME:", e);
+        }
+      }
+
       const mol = parseAndComputeSMILES(smiles);
       updateUI(mol);
     });
   });
 
+  // Calculate / Load Button Click
   if (calcBtn) {
     calcBtn.addEventListener('click', () => {
       presetBtns.forEach(b => b.classList.remove('active'));
       const smiles = smilesInput.value;
+
+      if (window.jsmeApplet && typeof window.jsmeApplet.readGenericMolecularInput === 'function') {
+        try {
+          window.jsmeApplet.readGenericMolecularInput(smiles);
+        } catch (e) {
+          console.warn("Could not pass smiles to JSME:", e);
+        }
+      }
+
       const mol = parseAndComputeSMILES(smiles);
       updateUI(mol);
     });
@@ -2187,7 +2062,12 @@ function initChemoinformaticsLab() {
     }
   });
 
-  // Initial Draw with Aspirin
+  // Try initializing JSME if already available
+  if (typeof JSApplet !== 'undefined' && !window.jsmeApplet) {
+    window.jsmeOnLoad();
+  }
+
+  // Initial UI calculation with Aspirin
   const initialMol = parseAndComputeSMILES(smilesInput.value);
   updateUI(initialMol);
 }
