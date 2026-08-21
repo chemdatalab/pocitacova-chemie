@@ -7,26 +7,30 @@
   /* UPOL Brand Colors */
   --up-blue-dark: #002855;
   --up-blue: #004990;
-  --up-blue-light: #0077b6;
-  --up-cyan: #00b4d8;
-  --up-cyan-light: #90e0ef;
-  --up-accent: #06d6a0;
-  --up-orange: #f77f00;
-  --up-red: #e63946;
+  --up-blue-light: #0284c7;
+  --up-cyan: #0284c7; /* Tuned for 4.5:1+ contrast on light backgrounds */
+  --up-cyan-light: #38bdf8;
+  --up-accent: #059669;
+  --up-orange: #d97706;
+  --up-red: #dc2626;
 
   /* Neutrals (Light Mode) */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
   --bg-card-hover: #f1f5f9;
-  --bg-glass: rgba(255, 255, 255, 0.85);
-  --border-color: #e2e8f0;
-  --border-subtle: #edf2f7;
+  --bg-glass: rgba(255, 255, 255, 0.92);
+  --border-color: #cbd5e1;
+  --border-subtle: #e2e8f0;
   
   --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-subtle: #64748b;
+  --text-muted: #334155;
+  --text-subtle: #475569;
   --text-inverse: #ffffff;
+
+  --tag-bg: #f1f5f9;
+  --tag-text: #0f172a;
+  --tag-border: #cbd5e1;
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -48,23 +52,34 @@
 }
 
 [data-theme="dark"] {
-  --bg-primary: #0a0f1d;
+  --up-blue-light: #38bdf8;
+  --up-cyan: #38bdf8;
+  --up-cyan-light: #7dd3fc;
+  --up-accent: #34d399;
+  --up-orange: #fbbf24;
+  --up-red: #f87171;
+
+  --bg-primary: #090d16;
   --bg-secondary: #0f172a;
-  --bg-card: #1e293b;
-  --bg-card-hover: #273549;
-  --bg-glass: rgba(15, 23, 42, 0.85);
+  --bg-card: #162032;
+  --bg-card-hover: #1e293b;
+  --bg-glass: rgba(15, 23, 42, 0.92);
   --border-color: #334155;
   --border-subtle: #1e293b;
   
   --text-main: #f8fafc;
-  --text-muted: #cbd5e1;
-  --text-subtle: #94a3b8;
+  --text-muted: #e2e8f0;
+  --text-subtle: #cbd5e1;
   --text-inverse: #0f172a;
+
+  --tag-bg: rgba(56, 189, 248, 0.12);
+  --tag-text: #f8fafc;
+  --tag-border: rgba(56, 189, 248, 0.3);
   
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 35px -5px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 35px -5px rgba(0, 0, 0, 0.7);
 }
 
 /* Reset & Base Styles */
@@ -732,13 +747,13 @@ img {
 }
 
 .pillar-tag {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
-  background: var(--bg-primary);
-  color: var(--text-subtle);
-  border: 1px solid var(--border-color);
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid var(--tag-border);
 }
 
 /* Why Study at UPOL Section */
@@ -1041,11 +1056,12 @@ img {
 
 .team-research-tag {
   display: inline-block;
-  font-size: 0.75rem;
-  background: var(--bg-primary);
-  color: var(--text-subtle);
-  border: 1px solid var(--border-color);
-  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid var(--tag-border);
+  padding: 0.25rem 0.6rem;
   border-radius: var(--radius-sm);
   margin-right: 0.35rem;
   margin-bottom: 0.35rem;
@@ -1220,6 +1236,64 @@ a.chapter-pill:hover {
 
 .contact-person a:hover {
   color: var(--up-blue);
+}
+
+/* Preparation Alert Banner */
+.prep-alert-banner {
+  background: linear-gradient(90deg, #9a3412 0%, #c2410c 50%, #ea580c 100%);
+  color: #ffffff;
+  padding: 0.65rem 1rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  position: relative;
+  z-index: 1001;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 10px rgba(154, 52, 18, 0.3);
+}
+
+.prep-alert-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.prep-alert-badge {
+  background: rgba(0, 0, 0, 0.28);
+  color: #fef08a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid rgba(254, 240, 138, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Footer Logos */
+.footer-logos {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.footer-logo-item {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+  transition: var(--transition);
+}
+
+.footer-logo-item:hover {
+  opacity: 1;
+  transform: translateY(-2px);
 }
 
 /* Footer */

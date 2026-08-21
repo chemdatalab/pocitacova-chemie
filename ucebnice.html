@@ -16,6 +16,14 @@
 </head>
 <body>
 
+  <!-- Notice: Program and Textbook in Preparation -->
+  <div class="prep-alert-banner">
+    <div class="container prep-alert-content">
+      <span class="prep-alert-badge">⚠️ V přípravě</span>
+      <span>Studijní obor <strong>Počítačová chemie</strong> i tyto výukové materiály jsou aktuálně ve fázi přípravy.</span>
+    </div>
+  </div>
+
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container nav-container">
@@ -51,7 +59,7 @@
         E-Učebnice a online simulátory
       </div>
       <h1 style="color: #ffffff; font-size: 2.75rem; margin-bottom: 0.5rem;">Počítačová chemie</h1>
-      <p style="font-size: 1.15rem; color: #cbd5e1; max-width: 800px; margin-bottom: 0;">
+      <p style="font-size: 1.15rem; color: #e2e8f0; max-width: 800px; margin-bottom: 0;">
         Přehled pro střední školy a uchazeče o studium na Přírodovědecké fakultě Univerzity Palackého v Olomouci. 
         Vyzkoušejte si reálné simulace v prohlížeči.
       </p>
@@ -291,7 +299,7 @@
                 </div>
                 <div style="margin-bottom: 0.5rem;">
                   <span style="color: var(--text-subtle);">Energie <i>E</i>:</span><br>
-                  <strong id="opt-energy-val" style="font-family: var(--font-mono); font-size: 1rem; color: #38bdf8;">-- kcal/mol</strong>
+                  <strong id="opt-energy-val" style="font-family: var(--font-mono); font-size: 1rem; color: var(--up-blue-light);">-- kcal/mol</strong>
                 </div>
                 <div style="margin-bottom: 0.5rem;">
                   <span style="color: var(--text-subtle);">Síla |∇<i>E</i>| (RMS gradient):</span><br>
@@ -300,14 +308,14 @@
               </div>
 
               <div>
-                <div id="opt-status-badge" style="padding: 0.4rem 0.6rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.78rem; text-align: center; background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid var(--border-color);">
+                <div id="opt-status-badge" style="padding: 0.4rem 0.6rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.78rem; text-align: center; background: var(--bg-primary); color: var(--text-muted); border: 1px solid var(--border-color);">
                   ⚪ Klikněte do mapy pro start
                 </div>
               </div>
             </div>
           </div>
 
-          <div id="opt-algo-desc" style="font-size: 0.84rem; color: #94a3b8; background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-top: 0.75rem; border-left: 3px solid var(--up-cyan);">
+          <div id="opt-algo-desc" style="font-size: 0.84rem; color: var(--text-muted); background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-top: 0.75rem; border-left: 3px solid var(--up-cyan);">
             <strong>Sdružené gradienty (CG):</strong> Využívá informaci z předchozího kroku k volbě ortogonálního směru. V zakřivených údolích netrpí křížovými oscilacemi jako nejprudší spád a k minimu dorazí mnohem rychleji.
           </div>
         </div>
@@ -396,7 +404,7 @@
             <iframe id="cg-molstar-iframe" src="https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx&hide-controls=1" style="width: 100%; height: 100%; border: none;"></iframe>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.8rem; color: #94a3b8;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-subtle);">
             <span>💡 <em>Myší můžete strukturu rotovat, posouvat a přibližovat (zoom).</em></span>
             <a id="cg-molstar-link" href="https://molstar.org/viewer/?snapshot-url=https%3A%2F%2Fmolstar.org%2Fdemos%2Fstates%2Fmotor-hook.molx&snapshot-url-type=molx" target="_blank" style="color: var(--up-cyan); font-weight: 600; text-decoration: none;">
               Otevřít v plném okně Mol* ↗
@@ -432,7 +440,7 @@
             <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
               Předpovídá, zda má molekula šanci stát se účinným perorálním lékem (vstřebatelným trávicím traktem):
             </p>
-            <div style="font-size: 0.8rem; color: #cbd5e1; display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem;">
+            <div style="font-size: 0.84rem; color: var(--text-subtle); display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem;">
               <span>• <i>MW</i> ≤ 500 g/mol</span>
               <span>• log<i>P</i> ≤ 5 (lipofilita)</span>
               <span>• H-donory ≤ 5 (OH, NH)</span>
@@ -447,7 +455,7 @@
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
             V moderní vědecké praxi a farmaceutickém průmyslu se k výpočtu deskriptorů využívají chemoinformatické knihovny <strong>RDKit</strong> (standard pro Python / C++), <strong>CDK</strong> (Chemistry Development Kit) a <strong>Open Babel</strong>. Tyto nástroje využívají exaktní matematické a empirické algoritmy:
           </p>
-          <ul style="font-size: 0.82rem; color: #cbd5e1; padding-left: 1.2rem; margin-bottom: 0; display: flex; flex-direction: column; gap: 0.3rem;">
+          <ul style="font-size: 0.84rem; color: var(--text-muted); padding-left: 1.2rem; margin-bottom: 0; display: flex; flex-direction: column; gap: 0.3rem;">
             <li><strong>Molekulová hmotnost (MW):</strong> Exaktní sumace atomových hmotností z grafu molekuly podle tabulek IUPAC.</li>
             <li><strong>Lipofilita (logP):</strong> <em>Wildman–Crippen model</em> rozkládá molekulu na 68 atomových typů a sčítá jejich experimentálně kalibrované hydrofobní příspěvky (SlogP).</li>
             <li><strong>Rozpustnost ve vodě (logS):</strong> <em>Delaneyho ESOL model</em> počítá rozpustnost ze vzorce: log<i>S</i> = 0.16 − 0.63·log<i>P</i> − 0.0062·<i>MW</i> + 0.066·<i>RotB</i> − 0.74·(Aromatický podíl).</li>
@@ -493,12 +501,12 @@
                   <button id="ketcher-tool-benzene" class="ketcher-tool-btn" title="Benzenový kruh">⬡</button>
                 </div>
                 <div style="display: flex; gap: 0.25rem; align-items: center; border-right: 1px solid var(--border-color); padding-right: 0.4rem;">
-                  <button class="ketcher-atom-btn active" data-atom="C" style="color: #cbd5e1;">C</button>
-                  <button class="ketcher-atom-btn" data-atom="N" style="color: #38bdf8;">N</button>
-                  <button class="ketcher-atom-btn" data-atom="O" style="color: #ef4444;">O</button>
-                  <button class="ketcher-atom-btn" data-atom="S" style="color: #eab308;">S</button>
-                  <button class="ketcher-atom-btn" data-atom="Cl" style="color: #22c55e;">Cl</button>
-                  <button class="ketcher-atom-btn" data-atom="F" style="color: #06b6d4;">F</button>
+                  <button class="ketcher-atom-btn active" data-atom="C" style="color: var(--text-main); font-weight: 700;">C</button>
+                  <button class="ketcher-atom-btn" data-atom="N" style="color: var(--up-blue-light); font-weight: 700;">N</button>
+                  <button class="ketcher-atom-btn" data-atom="O" style="color: #dc2626; font-weight: 700;">O</button>
+                  <button class="ketcher-atom-btn" data-atom="S" style="color: #d97706; font-weight: 700;">S</button>
+                  <button class="ketcher-atom-btn" data-atom="Cl" style="color: #16a34a; font-weight: 700;">Cl</button>
+                  <button class="ketcher-atom-btn" data-atom="F" style="color: #0284c7; font-weight: 700;">F</button>
                 </div>
                 <div style="display: flex; gap: 0.25rem; align-items: center;">
                   <button id="ketcher-tool-erase" class="ketcher-tool-btn" title="Guma (smazat kliknutý atom)">🧹</button>
@@ -516,12 +524,12 @@
 
               <!-- SMILES Input / Output -->
               <div style="display: flex; gap: 0.4rem; align-items: center;">
-                <input type="text" id="cheminf-smiles-input" value="CC(=O)Oc1ccccc1C(=O)O" style="flex-grow: 1; font-family: var(--font-mono); font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-primary); color: #38bdf8;">
+                <input type="text" id="cheminf-smiles-input" value="CC(=O)Oc1ccccc1C(=O)O" style="flex-grow: 1; font-family: var(--font-mono); font-size: 0.82rem; padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-main); font-weight: 600;">
                 <button id="cheminf-calc-btn" class="btn btn-primary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">⚡ Načíst</button>
               </div>
 
-              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: #94a3b8;">
-                <span id="cheminf-formula" style="font-family: var(--font-mono); font-weight: 700; color: #f8fafc;">C₉H₈O₄</span>
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-subtle);">
+                <span id="cheminf-formula" style="font-family: var(--font-mono); font-weight: 700; color: var(--text-main);">C₉H₈O₄</span>
                 <a href="https://lifescience.opensource.epam.com/ketcher/" target="_blank" style="color: var(--up-cyan); text-decoration: none;">Otevřít plný Ketcher ↗</a>
               </div>
             </div>
@@ -536,7 +544,7 @@
               <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
                 <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
                   <span style="font-size: 0.72rem; color: var(--text-subtle);">Mol. hmotnost (MW):</span><br>
-                  <strong id="desc-mw" style="font-family: var(--font-mono); font-size: 0.92rem; color: #38bdf8;">180.16 g/mol</strong>
+                  <strong id="desc-mw" style="font-family: var(--font-mono); font-size: 0.92rem; color: var(--up-blue-light);">180.16 g/mol</strong>
                 </div>
                 <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem;">
                   <span style="font-size: 0.72rem; color: var(--text-subtle);">Lipofilita (logP):</span><br>
@@ -618,7 +626,7 @@
           </div>
 
           <canvas id="docking-canvas" class="sim-canvas"></canvas>
-          <div id="docking-status" style="margin-top: 0.75rem; font-weight: 600; font-size: 0.9rem; text-align: center; color: #94a3b8;">
+          <div id="docking-status" style="margin-top: 0.75rem; font-weight: 600; font-size: 0.9rem; text-align: center; color: var(--text-muted);">
             ❄️ Volný ligand mimo vazebnou kapsu.
           </div>
         </div>
@@ -687,7 +695,7 @@
             <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
               U bimolekulární nukleofilní substituce (např. F⁻ + CH₃Cl → CH₃F + Cl⁻) dochází k útoku nukleofilu zezadu a k <strong>Waldenově inverzi</strong> (obrácení deštníku).
             </p>
-            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0;">
+            <p style="font-size: 0.82rem; color: var(--text-subtle); margin-bottom: 0;">
               V přechodovém stavu [F···CH₃···Cl]<sup>‡</sup> má centrální uhlík 5 vazebných kontaktů v trigonálně bipyramidálním uspořádání.
             </p>
           </div>
@@ -697,7 +705,7 @@
             <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
               Katalyzátor (enzym nebo kovový povrch) nemění celkovou termodynamickou rovnováhu (Δ<i>H</i>), ale nabízí <strong>alternativní reakční cestu s nižší aktivační energií (<i>E</i><sub>a</sub>)</strong>.
             </p>
-            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0;">
+            <p style="font-size: 0.82rem; color: var(--text-subtle); margin-bottom: 0;">
               Dle Arrheniovy rovnice \(k = A \cdot e^{-E_a / RT}\) snížení bariéry o pouhých 25 kJ/mol zrychlí reakci při pokojové teplotě více než <strong>25 000×</strong>!
             </p>
           </div>
@@ -751,7 +759,7 @@
             <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; display: flex; flex-direction: column;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                 <span style="font-size: 0.84rem; font-weight: 600; color: var(--up-cyan);">📈 Profil potenciální energie (PES)</span>
-                <span id="rxn-current-energy" style="font-family: var(--font-mono); font-size: 0.82rem; color: #f8fafc;">ΔE = 0.0 kJ/mol</span>
+                <span id="rxn-current-energy" style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-main); font-weight: 600;">ΔE = 0.0 kJ/mol</span>
               </div>
               <canvas id="rxn-pes-canvas" width="340" height="210" style="width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: block;"></canvas>
             </div>
@@ -770,7 +778,7 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.65rem; background: var(--bg-card); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.82rem;">
             <div>
               <span style="color: var(--text-subtle);">Aktuální fáze:</span><br>
-              <strong id="rxn-state-badge" style="color: #38bdf8;">Reaktanty</strong>
+              <strong id="rxn-state-badge" style="color: var(--up-blue-light);">Reaktanty</strong>
             </div>
             <div>
               <span style="color: var(--text-subtle);">Aktivační bariéra (Eₐ):</span><br>
@@ -827,14 +835,23 @@
   </div>
 
   <!-- Footer -->
-  <footer class="footer">
+  <footer class="footer" style="padding: 3rem 0 2rem 0;">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+      <div class="footer-logos" style="margin-bottom: 0;">
+        <img src="assets/img/kfclogo_white_horizontal.png" alt="Katedra fyzikální chemie UPOL" class="footer-logo-item" style="height: 42px;">
+        <img src="assets/img/logo-olomoucky-kraj-white.svg" alt="Olomoucký kraj" class="footer-logo-item" style="height: 34px;">
+      </div>
+      <div>
+        <a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank" style="color: var(--up-cyan); margin-right: 1.5rem; text-decoration: none;">GitHub repozitář</a>
+        <a href="index.html" style="color: var(--up-cyan); text-decoration: none;">Zpět na hlavní web programu</a>
+      </div>
+    </div>
     <div class="container footer-bottom">
       <div>
         © 2026 Přírodovědecká fakulta Univerzity Palackého v Olomouci • Katedra fyzikální chemie
       </div>
       <div>
-        <a href="https://github.com/chemdatalab/pocitacova-chemie" target="_blank" style="color: var(--up-cyan); margin-right: 1.5rem;">GitHub repozitář</a>
-        <a href="index.html" style="color: var(--up-cyan);">Zpět na hlavní web programu</a>
+        Vznik materiálů podpořen Olomouckým krajem
       </div>
     </div>
   </footer>
