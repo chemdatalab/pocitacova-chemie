@@ -7,6 +7,8 @@
   <meta name="description" content="Studijní program Počítačová chemie na PřF UPOL. Chemie bez baněk, molekulové modelování, kvantová chemie, AI a superpočítače.">
   <meta name="keywords" content="Počítačová chemie, UPOL, PřF, Katedra fyzikální chemie, Olomouc, molekulové modelování, bioinformatika, kvantová chemie, AlphaFold">
   
+  <meta name="robots" content="noindex, nofollow">
+  
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +18,55 @@
   <link rel="icon" type="image/svg+xml" href="assets/img/logo-kfc.svg">
 </head>
 <body>
+
+  <!-- Preview Mode Top Banner (visible only when authenticated) -->
+  <div id="preview-banner" class="preview-banner" style="display: none;">
+    <div class="container preview-banner-content">
+      <div class="preview-banner-left">
+        <span class="preview-badge">🔓 REŽIM NÁHLEDU</span>
+        <span>Přístup pro přípravný tým PřF UPOL aktivní</span>
+      </div>
+      <button id="preview-lock-btn" class="preview-lock-btn" title="Zamknout web a vymazat oprávnění">🔒 Zamknout / Odhlásit</button>
+    </div>
+  </div>
+
+  <!-- Gatekeeper Overlay (shown for unauthenticated visitors) -->
+  <div id="preview-gatekeeper" class="gatekeeper-overlay" style="display: none;">
+    <div class="gatekeeper-modal">
+      <div class="gatekeeper-header">
+        <img src="assets/img/logo-kfc.svg" alt="KFC PřF UPOL" class="gatekeeper-logo">
+        <div class="gatekeeper-badge">🚀 PŘIPRAVUJEME PRO VÁS</div>
+        <h1 class="gatekeeper-title">Počítačová chemie</h1>
+        <div class="gatekeeper-subtitle">Přírodovědecká fakulta Univerzity Palackého v Olomouci</div>
+      </div>
+      
+      <div class="gatekeeper-body">
+        <p class="gatekeeper-desc">
+          Připravujeme nový prezentační web a online učebnici studijního programu <strong>Počítačová chemie</strong>. 
+        </p>
+        <div class="gatekeeper-pills">
+          <span>🧪 Chemie bez baněk</span>
+          <span>🧬 AlphaFold & AI</span>
+          <span>💻 Superpočítače</span>
+          <span>💊 Vývoj léčiv</span>
+        </div>
+        
+        <div class="gatekeeper-auth-box">
+          <div class="gatekeeper-auth-title">🔐 Vstup pro přípravný a recenzní tým</div>
+          <form id="gatekeeper-form" class="gatekeeper-form">
+            <input type="password" id="gatekeeper-pass-input" placeholder="Zadejte přístupové heslo" autocomplete="current-password" required>
+            <button type="submit" class="btn btn-primary btn-sm">Odemknout ➔</button>
+          </form>
+          <div id="gatekeeper-error" class="gatekeeper-error" style="display: none;">❌ Nesprávné heslo. Zkuste to prosím znovu.</div>
+        </div>
+      </div>
+
+      <div class="gatekeeper-footer">
+        <div>© 2026 Katedra fyzikální chemie PřF UPOL</div>
+        <div style="margin-top: 0.25rem;"><a href="https://prihlaska.upol.cz" target="_blank" style="color: var(--up-cyan); text-decoration: none;">Informační systém přihlášek UPOL ↗</a></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Notice: Program and Web in Preparation -->
   <div class="prep-alert-banner">

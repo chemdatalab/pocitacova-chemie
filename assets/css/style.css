@@ -1592,3 +1592,214 @@ a.chapter-pill:hover {
   border-color: var(--up-cyan);
   color: #040915 !important;
 }
+
+/* ==========================================================================
+   Preview Mode & Gatekeeper Overlay Styles
+   ========================================================================== */
+.preview-banner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #071329 0%, #0c2044 100%);
+  border-bottom: 1px solid var(--up-cyan);
+  padding: 0.4rem 0;
+  z-index: 99998;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.preview-banner-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.preview-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.preview-badge {
+  background: rgba(6, 214, 160, 0.18);
+  border: 1px solid #06d6a0;
+  color: #06d6a0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.04em;
+}
+
+.preview-lock-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.preview-lock-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ffffff;
+}
+
+/* Gatekeeper Fullscreen Overlay */
+.gatekeeper-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #0a1936 0%, #030712 100%);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.gatekeeper-modal {
+  background: var(--bg-card);
+  border: 1px solid rgba(0, 180, 216, 0.35);
+  border-radius: var(--radius-xl);
+  max-width: 520px;
+  width: 100%;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 180, 216, 0.15);
+  text-align: center;
+  position: relative;
+  animation: gatekeeperPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes gatekeeperPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gatekeeper-logo {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1.25rem;
+  filter: drop-shadow(0 0 16px rgba(0, 180, 216, 0.4));
+}
+
+.gatekeeper-badge {
+  display: inline-block;
+  background: rgba(0, 180, 216, 0.15);
+  border: 1px solid var(--up-cyan);
+  color: var(--up-cyan);
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.gatekeeper-title {
+  font-size: 2.2rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+  background: linear-gradient(135deg, #ffffff 30%, var(--up-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gatekeeper-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.gatekeeper-desc {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 1.25rem;
+}
+
+.gatekeeper-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.gatekeeper-pills span {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94a3b8;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+}
+
+.gatekeeper-auth-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.gatekeeper-auth-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+}
+
+.gatekeeper-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.gatekeeper-form input {
+  flex-grow: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.88rem;
+  transition: var(--transition);
+}
+
+.gatekeeper-form input:focus {
+  outline: none;
+  border-color: var(--up-cyan);
+  box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.2);
+}
+
+.gatekeeper-error {
+  font-size: 0.78rem;
+  color: #ef4444;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.gatekeeper-footer {
+  font-size: 0.76rem;
+  color: var(--text-subtle);
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}

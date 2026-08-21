@@ -4,6 +4,9 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 0. Preview Mode & Gatekeeper for Prep Team
+  initPreviewGatekeeper();
+
   // 1. Theme Switcher (Dark / Light Mode)
   const themeToggle = document.getElementById('theme-toggle');
   const savedTheme = localStorage.getItem('theme') || 'light';
@@ -494,4 +497,80 @@ function initWaterProtonTransferCanvas() {
   }
 
   requestAnimationFrame(animate);
+}
+
+/* ==========================================================================
+   Preview Mode & Gatekeeper Authentication Logic
+   ========================================================================== */
+function initPreviewGatekeeper() {
+  const gatekeeperEl = document.getElementById('preview-gatekeeper');
+  const bannerEl = document.getElementById('preview-banner');
+  const formEl = document.getElementById('gatekeeper-form');
+  const passInput = document.getElementById('gatekeeper-pass-input');
+  const errorEl = document.getElementById('gatekeeper-error');
+  const lockBtn = document.getElementById('preview-lock-btn');
+
+  if (!gatekeeperEl) return;
+
+  // Accepted keys/passwords for team preview
+  const VALID_KEYS = ['kfc2026', 'pocitacovachemie', 'kfc-preview', 'chemie2026'];
+  const AUTH_KEY = 'pc_chem_preview_auth';
+
+  // 1. Check URL parameters (?preview=kfc2026 or ?access=kfc2026)
+  const urlParams = new URLSearchParams(window.location.search);
+  const previewParam = (urlParams.get('preview') || urlParams.get('access') || '').trim().toLowerCase();
+
+  if (previewParam && VALID_KEYS.includes(previewParam)) {
+    localStorage.setItem(AUTH_KEY, 'granted');
+    // Remove secret from URL bar for clean UX
+    try {
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    } catch (e) {}
+  }
+
+  // 2. Check current authorization status
+  const isAuthorized = localStorage.getItem(AUTH_KEY) === 'granted';
+
+  if (isAuthorized) {
+    // Unlock web
+    gatekeeperEl.style.display = 'none';
+    if (bannerEl) bannerEl.style.display = 'block';
+    document.body.style.overflow = '';
+  } else {
+    // Lock web behind gatekeeper overlay
+    gatekeeperEl.style.display = 'flex';
+    if (bannerEl) bannerEl.style.display = 'none';
+    document.body.style.overflow = 'hidden';
+  }
+
+  // 3. Form submission handler
+  if (formEl && passInput) {
+    formEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const enteredPass = (passInput.value || '').trim().toLowerCase();
+
+      if (VALID_KEYS.includes(enteredPass)) {
+        localStorage.setItem(AUTH_KEY, 'granted');
+        if (errorEl) errorEl.style.display = 'none';
+        gatekeeperEl.style.display = 'none';
+        if (bannerEl) bannerEl.style.display = 'block';
+        document.body.style.overflow = '';
+      } else {
+        if (errorEl) {
+          errorEl.style.display = 'block';
+          passInput.focus();
+          passInput.select();
+        }
+      }
+    });
+  }
+
+  // 4. Lockout / Logout button
+  if (lockBtn) {
+    lockBtn.addEventListener('click', () => {
+      localStorage.removeItem(AUTH_KEY);
+      window.location.reload();
+    });
+  }
 }
