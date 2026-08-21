@@ -1960,7 +1960,7 @@ function initAlphaFoldExplorer() {
     '4HHB': {
       name: 'Hemoglobin (PDB: 4HHB)',
       plddt: 93.8,
-      desc: 'Kyslík přenášející tetramerní protein v lidských červených krvinkách. Skládá se ze dvou alfa a dvou beta podjednotek a hemu.',
+      desc: 'Kyslík přenášející tetramerní protein v lidských červených krvinkách. Skládá se ze dvou alfa a dvou beta podjednotek a čtyř hemů.',
       url: 'https://molstar.org/viewer/?pdb=4hhb&hide-controls=1'
     },
     '1EMA': {
