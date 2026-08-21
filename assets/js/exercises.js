@@ -1586,43 +1586,41 @@ function initDockingSimulator() {
     const distCenter = Math.hypot(dx, dy);
 
     // Compute global coordinates of Ligand pharmacophore points
+    // Ligand geometry matched to pocket sites: Donor (-38, -28), Acceptor (+38, -28), Hydrophobic (0, +34)
     const cosA = Math.cos(ligand.angle);
     const sinA = Math.sin(ligand.angle);
 
-    // Ligand Donor point: local (-28, -18)
     const ligDonor = {
-      x: ligand.x + (-28 * cosA - (-18) * sinA),
-      y: ligand.y + (-28 * sinA + (-18) * cosA)
+      x: ligand.x + (-38 * cosA - (-28) * sinA),
+      y: ligand.y + (-38 * sinA + (-28) * cosA)
     };
 
-    // Ligand Acceptor point: local (+28, -18)
     const ligAcceptor = {
-      x: ligand.x + (28 * cosA - (-18) * sinA),
-      y: ligand.y + (28 * sinA + (-18) * cosA)
+      x: ligand.x + (38 * cosA - (-28) * sinA),
+      y: ligand.y + (38 * sinA + (-28) * cosA)
     };
 
-    // Ligand Hydrophobic group: local (0, +28)
     const ligHydro = {
-      x: ligand.x + (0 * cosA - 28 * sinA),
-      y: ligand.y + (0 * sinA + 28 * cosA)
+      x: ligand.x + (0 * cosA - 34 * sinA),
+      y: ligand.y + (0 * sinA + 34 * cosA)
     };
 
     let deltaG = 0.0;
 
-    if (distCenter > 80) {
+    if (distCenter > 85) {
       // Free ligand in solution outside active site
       deltaG = 0.0;
     } else {
       // Ligand inside pocket: baseline cavity desolvation penalty (+1.5 kcal/mol)
       deltaG = 1.5;
 
-      // 1. Shape & Cavity complementarity
+      // 1. Shape & Cavity complementarity (bonus up to -1.2 kcal/mol)
       deltaG -= 1.2 * Math.exp(-(distCenter * distCenter) / 900);
 
       // 2. Hydrogen Bond 1: Ligand Donor -> Pocket Site 1 (Acceptor at 230, 130)
       const dD_S1 = Math.hypot(ligDonor.x - pocket.hBondSite1.x, ligDonor.y - pocket.hBondSite1.y);
-      if (dD_S1 < 22) {
-        const eHB1 = -4.2 * Math.exp(-(dD_S1 * dD_S1) / 90);
+      if (dD_S1 < 30) {
+        const eHB1 = -4.2 * Math.exp(-(dD_S1 * dD_S1) / 160);
         deltaG += eHB1;
         activeInteractions.push({
           x1: ligDonor.x, y1: ligDonor.y,
@@ -1633,8 +1631,8 @@ function initDockingSimulator() {
 
       // 3. Hydrogen Bond 2: Ligand Acceptor -> Pocket Site 2 (Donor at 310, 130)
       const dA_S2 = Math.hypot(ligAcceptor.x - pocket.hBondSite2.x, ligAcceptor.y - pocket.hBondSite2.y);
-      if (dA_S2 < 22) {
-        const eHB2 = -4.2 * Math.exp(-(dA_S2 * dA_S2) / 90);
+      if (dA_S2 < 30) {
+        const eHB2 = -4.2 * Math.exp(-(dA_S2 * dA_S2) / 160);
         deltaG += eHB2;
         activeInteractions.push({
           x1: ligAcceptor.x, y1: ligAcceptor.y,
@@ -1645,8 +1643,8 @@ function initDockingSimulator() {
 
       // 4. Hydrophobic Interaction: Ligand Hydrophobic Ring -> Pocket Hydrophobic Site (270, 195)
       const dH_SH = Math.hypot(ligHydro.x - pocket.hydrophobicSite.x, ligHydro.y - pocket.hydrophobicSite.y);
-      if (dH_SH < 26) {
-        const eHyd = -4.6 * Math.exp(-(dH_SH * dH_SH) / 140);
+      if (dH_SH < 32) {
+        const eHyd = -4.6 * Math.exp(-(dH_SH * dH_SH) / 200);
         deltaG += eHyd;
         activeInteractions.push({
           x1: ligHydro.x, y1: ligHydro.y,
@@ -1656,10 +1654,10 @@ function initDockingSimulator() {
       }
 
       // 5. ELECTROSTATIC / PHARMACOPHORE CLASHES (When rotated or mismatched)
-      // Clash A: Ligand Acceptor near Pocket Acceptor Site 1 (same charge repulsion)
+      // Clash A: Ligand Acceptor near Pocket Acceptor Site 1 (same negative charge repulsion)
       const dA_S1 = Math.hypot(ligAcceptor.x - pocket.hBondSite1.x, ligAcceptor.y - pocket.hBondSite1.y);
-      if (dA_S1 < 22) {
-        const eClash1 = 4.5 * Math.exp(-(dA_S1 * dA_S1) / 90);
+      if (dA_S1 < 30) {
+        const eClash1 = 4.5 * Math.exp(-(dA_S1 * dA_S1) / 160);
         deltaG += eClash1;
         activeInteractions.push({
           x1: ligAcceptor.x, y1: ligAcceptor.y,
@@ -1668,10 +1666,10 @@ function initDockingSimulator() {
         });
       }
 
-      // Clash B: Ligand Donor near Pocket Donor Site 2 (same charge repulsion)
+      // Clash B: Ligand Donor near Pocket Donor Site 2 (same positive charge repulsion)
       const dD_S2 = Math.hypot(ligDonor.x - pocket.hBondSite2.x, ligDonor.y - pocket.hBondSite2.y);
-      if (dD_S2 < 22) {
-        const eClash2 = 4.5 * Math.exp(-(dD_S2 * dD_S2) / 90);
+      if (dD_S2 < 30) {
+        const eClash2 = 4.5 * Math.exp(-(dD_S2 * dD_S2) / 160);
         deltaG += eClash2;
         activeInteractions.push({
           x1: ligDonor.x, y1: ligDonor.y,
@@ -1683,7 +1681,7 @@ function initDockingSimulator() {
       // Clash C: Polar groups entering hydrophobic pocket
       const dD_SH = Math.hypot(ligDonor.x - pocket.hydrophobicSite.x, ligDonor.y - pocket.hydrophobicSite.y);
       const dA_SH = Math.hypot(ligAcceptor.x - pocket.hydrophobicSite.x, ligAcceptor.y - pocket.hydrophobicSite.y);
-      if (dD_SH < 20 || dA_SH < 20) {
+      if (dD_SH < 22 || dA_SH < 22) {
         deltaG += 3.0;
       }
     }
@@ -1710,13 +1708,13 @@ function initDockingSimulator() {
     }
 
     if (statusEl) {
-      if (distCenter > 75) {
+      if (distCenter > 85) {
         statusEl.innerText = '❄️ Volný ligand v roztoku mimo vazebnou kapsu enzymu.';
         statusEl.style.color = '#94a3b8';
-      } else if (deltaG <= -10.5) {
+      } else if (deltaG <= -10.0) {
         statusEl.innerText = `🔥 Perfektní vazba! Silný specifický inhibitor enzymu (nanomolární afinita: Kd = ${kdInfo.str.split(' ')[0]}).`;
         statusEl.style.color = '#10b981';
-      } else if (deltaG <= -5.5) {
+      } else if (deltaG <= -5.0) {
         statusEl.innerText = `⚡ Částečná vazba (mikromolární hit: Kd = ${kdInfo.str.split(' ')[0]}). Zkuste ligand lépe natočit.`;
         statusEl.style.color = '#f59e0b';
       } else if (deltaG < 0) {
@@ -1744,14 +1742,14 @@ function initDockingSimulator() {
     // Pocket Cavity
     ctx.fillStyle = '#0a1020';
     ctx.beginPath();
-    ctx.arc(pocket.x, pocket.y, 66, 0, Math.PI * 2);
+    ctx.arc(pocket.x, pocket.y, 68, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#00f5d4';
     ctx.lineWidth = 1.8;
     ctx.stroke();
 
     // Pharmacophore Features inside pocket
-    // Site 1: H-Bond Acceptor (Red)
+    // Site 1: H-Bond Acceptor (Red at 230, 130)
     ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
     ctx.beginPath();
     ctx.arc(pocket.hBondSite1.x, pocket.hBondSite1.y, 16, 0, Math.PI * 2);
@@ -1765,7 +1763,7 @@ function initDockingSimulator() {
     ctx.textAlign = 'center';
     ctx.fillText('Akceptor', pocket.hBondSite1.x, pocket.hBondSite1.y - 10);
 
-    // Site 2: H-Bond Donor (Blue)
+    // Site 2: H-Bond Donor (Blue at 310, 130)
     ctx.fillStyle = 'rgba(59, 130, 246, 0.25)';
     ctx.beginPath();
     ctx.arc(pocket.hBondSite2.x, pocket.hBondSite2.y, 16, 0, Math.PI * 2);
@@ -1779,7 +1777,7 @@ function initDockingSimulator() {
     ctx.textAlign = 'center';
     ctx.fillText('Donor', pocket.hBondSite2.x, pocket.hBondSite2.y - 10);
 
-    // Hydrophobic Pocket Site (Yellow/Orange)
+    // Hydrophobic Pocket Site (Yellow/Orange at 270, 195)
     ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
     ctx.beginPath();
     ctx.arc(pocket.hydrophobicSite.x, pocket.hydrophobicSite.y, pocket.hydrophobicSite.radius, 0, Math.PI * 2);
@@ -1827,16 +1825,16 @@ function initDockingSimulator() {
     ctx.translate(ligand.x, ligand.y);
     ctx.rotate(ligand.angle);
 
-    // Ligand Backbone Skeleton
+    // Ligand Backbone Skeleton matching pocket geometry (-38, -28), (+38, -28), (0, +34)
     ctx.strokeStyle = '#00f5d4';
     ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(-28, -18);
+    ctx.moveTo(-38, -28);
     ctx.lineTo(0, 0);
-    ctx.lineTo(28, -18);
+    ctx.lineTo(38, -28);
     ctx.moveTo(0, 0);
-    ctx.lineTo(0, 28);
+    ctx.lineTo(0, 34);
     ctx.stroke();
 
     // Central carbon node
@@ -1845,38 +1843,38 @@ function initDockingSimulator() {
     ctx.arc(0, 0, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Donor group on Ligand (-NH2 / Blue, local -28, -18)
+    // Donor group on Ligand (-NH2 / Blue, local -38, -28)
     ctx.fillStyle = '#3b82f6';
     ctx.beginPath();
-    ctx.arc(-28, -18, 8, 0, Math.PI * 2);
+    ctx.arc(-38, -28, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 7px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('D', -28, -18);
+    ctx.fillText('D', -38, -28);
 
-    // Acceptor group on Ligand (=O / Red, local +28, -18)
+    // Acceptor group on Ligand (=O / Red, local +38, -28)
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
-    ctx.arc(28, -18, 8, 0, Math.PI * 2);
+    ctx.arc(38, -28, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 7px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('A', 28, -18);
+    ctx.fillText('A', 38, -28);
 
-    // Hydrophobic moiety (Benzene ring shape, local 0, +28)
+    // Hydrophobic moiety (Benzene ring shape, local 0, +34)
     ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
-    ctx.arc(0, 28, 10, 0, Math.PI * 2);
+    ctx.arc(0, 34, 10, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#060b17';
     ctx.font = 'bold 8px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⬡', 0, 28);
+    ctx.fillText('⬡', 0, 34);
 
     ctx.restore();
 
