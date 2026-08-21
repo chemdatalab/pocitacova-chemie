@@ -954,7 +954,7 @@ function initWaterPhaseMDSimulator() {
 
   // Clausius-Clapeyron: Boiling point as function of pressure (p in atm)
   function getBoilingPoint(pressAtm) {
-    return 100.0 + 28.0 * (Math.log(pressAtm) / Math.LN10);
+    return 100.0 + 31.5 * (Math.log(pressAtm) / Math.LN10);
   }
 
   // Calculate Phase Fractions with Smooth Coexistence at Transitions
