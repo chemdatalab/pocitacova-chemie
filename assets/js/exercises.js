@@ -1963,12 +1963,6 @@ function initAlphaFoldExplorer() {
       desc: 'Kyslík přenášející tetramerní protein v lidských červených krvinkách. Skládá se ze dvou alfa a dvou beta podjednotek a hemu.',
       url: 'https://molstar.org/viewer/?pdb=4hhb&hide-controls=1'
     },
-    'AF-P01308': {
-      name: 'Lidský inzulín (AlphaFold DB: P01308)',
-      plddt: 91.2,
-      desc: 'Hormon regulující hladinu glukózy v krvi. Vypočtený model AlphaFold DB s vysokou spolehlivostí predikce.',
-      url: 'https://molstar.org/viewer/?afdb=P01308&hide-controls=1'
-    },
     '1EMA': {
       name: 'Zelený fluorescenční protein GFP (PDB: 1EMA)',
       plddt: 95.2,
