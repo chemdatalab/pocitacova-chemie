@@ -2444,7 +2444,7 @@ function initReactionPathwayLab() {
     }
   };
 
-  let currentSystem = 'sn2';
+  let currentSystem = 'ester';
   let isCatalyzed = false;
   let animId = null;
   let isPlaying = false;

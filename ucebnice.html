@@ -814,12 +814,12 @@
         <!-- Theory Cards: Transition State & Catalysis -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1.25rem 0;">
           <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem;">
-            <h4 style="font-size: 1rem; color: var(--up-cyan); margin-bottom: 0.4rem;">⛰️ Přechodový stav (‡) & S<sub>N</sub>2 substituce</h4>
+            <h4 style="font-size: 1rem; color: var(--up-cyan); margin-bottom: 0.4rem;">⛰️ Přechodový stav (‡) & reakční profil</h4>
             <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
-              U bimolekulární nukleofilní substituce (např. F⁻ + CH₃Cl → CH₃F + Cl⁻) dochází k útoku nukleofilu zezadu a k <strong>Waldenově inverzi</strong> (obrácení deštníku).
+              Během chemické reakce prochází molekuly přes <strong>přechodový stav</strong> – nejméně stabilní uspořádání atomů na reakční koordinátě, kde zanikají původní vazby a vznikají nové.
             </p>
             <p style="font-size: 0.82rem; color: var(--text-subtle); margin-bottom: 0;">
-              V přechodovém stavu [F···CH₃···Cl]<sup>‡</sup> má centrální uhlík 5 vazebných kontaktů v trigonálně bipyramidálním uspořádání.
+              Výška této energetické bariéry (aktivační energie <i>E</i><sub>a</sub>) určuje, jak rychle reakce probíhá při dané teplotě.
             </p>
           </div>
 
@@ -849,8 +849,7 @@
             <div style="display: flex; gap: 0.5rem; align-items: center;">
               <label for="rxn-system-select" style="font-size: 0.88rem; font-weight: 600;">Reakce:</label>
               <select id="rxn-system-select" style="padding: 0.35rem 0.7rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-main); font-size: 0.85rem;">
-                <option value="sn2">F⁻ + CH₃Cl → CH₃F + Cl⁻ (Sₙ2 substituce & Waldenova inverze)</option>
-                <option value="ester">Hydrolýza peptidu/esteru (Nekatalyzovaná vs. enzymatická)</option>
+                <option value="ester" selected>Hydrolýza peptidu/esteru (Nekatalyzovaná vs. enzymatická)</option>
                 <option value="hydrogenation">Hydrogenace ethenu H₂ + C₂H₄ (Nekatalyzovaná vs. Pt katalyzátor)</option>
               </select>
             </div>
@@ -1004,6 +1003,6 @@
     };
   </script>
   <script src="assets/js/jsme/jsme.nocache.js"></script>
-  <script src="assets/js/exercises.js?v=20260821_2140"></script>
+  <script src="assets/js/exercises.js?v=20260821_2145"></script>
 </body>
 </html>
