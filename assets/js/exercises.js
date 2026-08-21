@@ -2450,13 +2450,14 @@ function initReactionPathwayLab() {
   let isPlaying = false;
 
   function getEnergy(xi, ea, dh) {
-    // xi: 0 .. 1
-    // Smooth asymmetric reaction profile curve
-    // Peak at xi = 0.5
-    const t = xi * Math.PI;
-    const barrier = ea * Math.pow(Math.sin(t), 2);
-    const thermo = dh * (1 - Math.cos(xi * Math.PI)) / 2;
-    return barrier + thermo;
+    // xi: 0.0 (Reactants, E = 0) -> 0.5 (TS ‡, Peak Maximum, E = Ea) -> 1.0 (Products, E = ΔH)
+    if (xi <= 0.5) {
+      // Smooth ascent from 0 to Ea with zero derivative at xi=0 and xi=0.5
+      return ea * Math.pow(Math.sin(xi * Math.PI), 2);
+    } else {
+      // Smooth descent from Ea down to ΔH with zero derivative at xi=0.5 and xi=1.0
+      return ea + (dh - ea) * Math.pow(Math.sin((xi - 0.5) * Math.PI), 2);
+    }
   }
 
   function drawPES(xi) {
