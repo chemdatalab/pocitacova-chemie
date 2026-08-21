@@ -925,13 +925,133 @@
           <h2 class="chapter-title">Materiálové vlastnosti: Fotovoltaika, baterie a nanomateriály</h2>
         </div>
         <p>
-          Výpočetní metody hrají zásadní roli v moderní energetice. V Olomouci na Katedře fyzikální chemie PřF UPOL se vědci zabývají modelováním:
+          Výpočetní materiálová chemie a kvantová fyzika hrají klíčovou roli v moderní čisté energetice. Na <strong>Katedře fyzikální chemie PřF UPOL</strong> se vědci zabývají pokročilým modelováním:
         </p>
         <ul style="margin-left: 1.5rem; margin-bottom: 1.25rem; color: var(--text-muted);">
-          <li><strong>2D grafenových derivátů</strong> (fluorografen, grafénová kyselina) pro superkondenzátory.</li>
-          <li><strong>Materiálů pro akumulátory</strong> (rychlejší transport lithných a sodných iontů bez rizika vznícení).</li>
-          <li><strong>Perovskitových solárních článků</strong> s vysokou účinností přeměny světla na elektřinu.</li>
+          <li><strong>2D grafenových derivátů</strong> (fluorografen, grafénová kyselina, grafenové kvantové tečky) pro superkondenzátory a katalýzu.</li>
+          <li><strong>Materiálů pro akumulátory</strong> (rychlejší a bezpečnější transport lithných i sodných iontů bez rizika vznícení).</li>
+          <li><strong>Perovskitových solárních článků</strong> s vysokou účinností přeměny světla na elektrický proud.</li>
         </ul>
+
+        <!-- Theory Cards: Bandgap & Shockley-Queisser Limit -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1.25rem 0;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem;">
+            <h4 style="font-size: 1rem; color: var(--up-cyan); margin-bottom: 0.4rem;">☀️ Kvantový princip fotovoltaiky & Bandgap (<i>E</i><sub>g</sub>)</h4>
+            <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+              Světlo tvoří fotony o energii <strong><i>E</i><sub>fot</sub> = <i>hc</i> / λ ≈ 1240 / λ [eV]</strong>. K absorpci a excitaci elektronu z valenčního pásu (HOMO) do vodivostního pásu (LUMO) dojde pouze tehdy, má-li foton energii alespoň rovnu šířce zakázaného pásu (<strong><i>E</i><sub>fot</sub> ≥ <i>E</i><sub>g</sub></strong>).
+            </p>
+            <p style="font-size: 0.82rem; color: var(--text-subtle); margin-bottom: 0;">
+              Fotony s delší vlnovou délkou (λ > λ<sub>max</sub>) materiálem projdou bez užitku, zatímco přebytečná energie kratších fotonů se vyzáří jako teplo (termalizace).
+            </p>
+          </div>
+
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.15rem;">
+            <h4 style="font-size: 1rem; color: #10b981; margin-bottom: 0.4rem;">⚡ Shockley-Queisserův limit účinnosti</h4>
+            <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+              Optimální solární materiál představuje kompromis: malý bandgap pohltí hodně fotonů, ale má nízké napětí; velký bandgap poskytne vysoké napětí, ale propustí většinu slunečního spektra.
+            </p>
+            <p style="font-size: 0.82rem; color: var(--text-subtle); margin-bottom: 0;">
+              Teoretické maximum pro jednočlánkový panel leží okolo <strong><i>E</i><sub>g</sub> ≈ 1.34 – 1.45 eV</strong> s maximální účinností <strong>η ≈ 33.7 %</strong> (křemík, perovskity, GaAs).
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive Exercise 9: Solar Cell Simulator -->
+        <div class="interactive-box" style="margin-top: 1.5rem;">
+          <div class="interactive-header">
+            <span class="interactive-badge">⚡ Interaktivní cvičení 9</span>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Kvantový návrh solárního článku: Spektrum, bandgap & excitace</h4>
+          </div>
+          <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+            Zvolte polovodičový materiál nebo nastavte vlastní šířku zakázaného pásu (<i>E</i><sub>g</sub>) a vlnovou délku dopadajícího světla. Sledujte, jak se mění absorpční hrana ve slunečním spektru, kvantová excitace elektronů a celková efektivita solárního panelu.
+          </p>
+
+          <!-- Preset Material Buttons -->
+          <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1rem;">
+            <button class="btn btn-secondary btn-sm solar-preset-btn active" data-eg="1.12" data-name="Křemík (Si)">⚡ Křemík (Si, 1.12 eV)</button>
+            <button class="btn btn-secondary btn-sm solar-preset-btn" data-eg="1.55" data-name="Perovskit (MAPbI₃)">☀️ Perovskit (MAPbI₃, 1.55 eV)</button>
+            <button class="btn btn-secondary btn-sm solar-preset-btn" data-eg="1.42" data-name="Gallium arsenid (GaAs)">🛰️ GaAs (1.42 eV – SQ optimum)</button>
+            <button class="btn btn-secondary btn-sm solar-preset-btn" data-eg="3.20" data-name="Oxid titaničitý (TiO₂)">💎 Oxid titaničitý (TiO₂, 3.20 eV)</button>
+            <button class="btn btn-secondary btn-sm solar-preset-btn" data-eg="0.50" data-name="Úzkopásmový polovodič">🧪 Úzkopásmový polovodič (0.50 eV)</button>
+          </div>
+
+          <!-- Dual Sliders: Bandgap & Test Wavelength -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border-color);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label for="solar-eg-slider" style="font-size: 0.85rem; font-weight: 700;">🔬 Šířka zakázaného pásu (<i>E</i><sub>g</sub>):</label>
+                <span id="solar-eg-val" style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: var(--up-cyan);">1.12 eV</span>
+              </div>
+              <input type="range" id="solar-eg-slider" min="0.4" max="3.4" step="0.02" value="1.12" style="width: 100%; accent-color: var(--up-cyan); cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+                <span>0.4 eV (InSb)</span>
+                <span>1.34 eV (SQ Optimum)</span>
+                <span>3.4 eV (GaN/TiO₂)</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label for="solar-wl-slider" style="font-size: 0.85rem; font-weight: 700;">💡 Vlnová délka testovacího laseru (λ):</label>
+                <span id="solar-wl-val" style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: #10b981;">550 nm (Zelené světlo)</span>
+              </div>
+              <input type="range" id="solar-wl-slider" min="300" max="1300" step="5" value="550" style="width: 100%; accent-color: #10b981; cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+                <span style="color: #a855f7;">300 nm (UV)</span>
+                <span style="color: #3b82f6;">450 nm</span>
+                <span style="color: #22c55e;">550 nm</span>
+                <span style="color: #ef4444;">700 nm</span>
+                <span style="color: #f59e0b;">1300 nm (IR)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual Simulation Visualizer (Spectrum & Band Structure) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <!-- Left Canvas: Solar Spectrum & SQ Losses -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <span style="font-size: 0.84rem; font-weight: 600; color: var(--up-cyan);">📊 Sluneční spektrum AM 1.5G & Ztráty</span>
+                <span id="solar-cutoff-label" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);">λ_max = 1107 nm</span>
+              </div>
+              <canvas id="solar-spectrum-canvas" width="340" height="210" style="width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: block;"></canvas>
+            </div>
+
+            <!-- Right Canvas: Quantum Band Structure & Electron Excitation -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <span style="font-size: 0.84rem; font-weight: 600; color: #10b981;">⚛️ Kvantová pásová struktura & Excitace</span>
+                <span id="solar-quantum-state" style="font-family: var(--font-mono); font-size: 0.78rem; color: #10b981; font-weight: 600;">⚡ Excitace aktivní</span>
+              </div>
+              <canvas id="solar-band-canvas" width="340" height="210" style="width: 100%; height: 210px; background: #060b17; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: block;"></canvas>
+            </div>
+          </div>
+
+          <!-- Live Solar Performance Metrics Bar -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.65rem; background: var(--bg-card); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.82rem;">
+            <div>
+              <span style="color: var(--text-subtle);">Účinnost panelu (η):</span><br>
+              <strong id="solar-efficiency-val" style="color: #10b981; font-family: var(--font-mono); font-size: 0.95rem;">29.4 %</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Mezní vlnová délka (λ<sub>max</sub>):</span><br>
+              <strong id="solar-lambda-max" style="color: var(--up-cyan); font-family: var(--font-mono); font-size: 0.92rem;">1107 nm (IR)</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Fotonapětí (<i>V</i><sub>oc</sub>):</span><br>
+              <strong id="solar-voc-val" style="color: var(--up-blue-light); font-family: var(--font-mono); font-size: 0.92rem;">0.81 V</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Fotoproud (<i>J</i><sub>sc</sub>):</span><br>
+              <strong id="solar-jsc-val" style="color: #f59e0b; font-family: var(--font-mono); font-size: 0.92rem;">43.2 mA/cm²</strong>
+            </div>
+          </div>
+
+          <!-- Quantum Laser Test Status Card -->
+          <div id="solar-laser-status" style="margin-top: 0.75rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.82rem; color: var(--text-main);">
+            ✅ <strong>Foton testovacího laseru absorbován!</strong> Energie fotonu <i>E</i><sub>fot</sub> = 2.25 eV překonává bandgap <i>E</i><sub>g</sub> = 1.12 eV. Elektron přechází do vodivostního pásu, přebytek 1.13 eV se termalizuje na teplo.
+          </div>
+        </div>
       </article>
 
       <!-- Kapitola 10 -->
@@ -1003,6 +1123,6 @@
     };
   </script>
   <script src="assets/js/jsme/jsme.nocache.js"></script>
-  <script src="assets/js/exercises.js?v=20260821_2152"></script>
+  <script src="assets/js/exercises.js?v=20260821_2200"></script>
 </body>
 </html>

@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initDockingSimulator();
   initAlphaFoldExplorer();
   initReactionPathwayLab();
+  initSolarEfficiencySimulator();
 });
 
 /* ==========================================================================
@@ -2987,4 +2988,562 @@ function initReactionPathwayLab() {
 
   // Initial draw
   update();
+}
+
+/* ==========================================================================
+   9. Kapitola 9: Kvantový návrh solárního článku & fotonika (Shockley-Queisser)
+   ========================================================================== */
+function initSolarEfficiencySimulator() {
+  const specCanvas = document.getElementById('solar-spectrum-canvas');
+  const bandCanvas = document.getElementById('solar-band-canvas');
+  const egSlider = document.getElementById('solar-eg-slider');
+  const wlSlider = document.getElementById('solar-wl-slider');
+  const egValEl = document.getElementById('solar-eg-val');
+  const wlValEl = document.getElementById('solar-wl-val');
+  const presetBtns = document.querySelectorAll('.solar-preset-btn');
+
+  const effValEl = document.getElementById('solar-efficiency-val');
+  const lambdaMaxEl = document.getElementById('solar-lambda-max');
+  const vocValEl = document.getElementById('solar-voc-val');
+  const jscValEl = document.getElementById('solar-jsc-val');
+  const cutoffLabel = document.getElementById('solar-cutoff-label');
+  const quantumStateBadge = document.getElementById('solar-quantum-state');
+  const laserStatusCard = document.getElementById('solar-laser-status');
+
+  if (!specCanvas || !bandCanvas || !egSlider || !wlSlider) return;
+
+  const ctxSpec = specCanvas.getContext('2d');
+  const ctxBand = bandCanvas.getContext('2d');
+  const wSpec = specCanvas.width = 340;
+  const hSpec = specCanvas.height = 210;
+  const wBand = bandCanvas.width = 340;
+  const hBand = bandCanvas.height = 210;
+
+  let Eg = parseFloat(egSlider.value); // eV
+  let lambda = parseFloat(wlSlider.value); // nm
+  let animFrameId = null;
+
+  // Photon animation state for Band canvas
+  const photons = [];
+  const excitedElectrons = [];
+  let animTick = 0;
+
+  // Shockley-Queisser Model Calculations
+  function calculateSQ(eg_eV) {
+    const lambda_max = 1239.84 / Math.max(0.1, eg_eV);
+    
+    // Photocurrent density Jsc (mA/cm²) under AM1.5G
+    const Jsc = eg_eV < 0.2 ? 65.0 : Math.max(0.1, 62.0 / (1.0 + Math.exp((eg_eV - 1.15) / 0.45)));
+    
+    // Open-circuit voltage Voc (V)
+    const Voc = Math.max(0.0, 0.84 * eg_eV - 0.12);
+    
+    // Fill factor FF ~ 0.83
+    const FF = 0.83;
+    const Pin = 100.0; // mW/cm²
+    
+    // Shockley-Queisser theoretical maximum curve peaking at 1.34 eV (~33.7%)
+    let eta = 0.0;
+    if (eg_eV > 0.2) {
+      const peakFactor = Math.exp(-Math.pow(eg_eV - 1.34, 2) / 0.75);
+      eta = Math.max(0.1, Math.min(33.7, 33.7 * peakFactor * (1.0 - Math.exp(-eg_eV * 2.2))));
+    }
+
+    return {
+      lambda_max,
+      Jsc,
+      Voc,
+      eta
+    };
+  }
+
+  // Wavelength to RGB / Color description
+  function getWavelengthColor(wl_nm) {
+    if (wl_nm < 380) return { hex: '#a855f7', name: 'Ultrafialové (UV)', rgb: [168, 85, 247] };
+    if (wl_nm < 450) return { hex: '#6366f1', name: 'Fialovo-modré', rgb: [99, 102, 241] };
+    if (wl_nm < 495) return { hex: '#3b82f6', name: 'Modré světlo', rgb: [59, 130, 246] };
+    if (wl_nm < 570) return { hex: '#22c55e', name: 'Zelené světlo', rgb: [34, 197, 94] };
+    if (wl_nm < 590) return { hex: '#eab308', name: 'Žluté světlo', rgb: [234, 179, 8] };
+    if (wl_nm < 620) return { hex: '#f97316', name: 'Oranžové světlo', rgb: [249, 115, 22] };
+    if (wl_nm < 750) return { hex: '#ef4444', name: 'Červené světlo', rgb: [239, 68, 68] };
+    return { hex: '#dc2626', name: 'Infračervené (IR)', rgb: [220, 38, 38] };
+  }
+
+  // Draw AM1.5G Solar Spectrum & SQ Energy Losses (Left Canvas)
+  function drawSpectrum() {
+    ctxSpec.clearRect(0, 0, wSpec, hSpec);
+    ctxSpec.fillStyle = '#060b17';
+    ctxSpec.fillRect(0, 0, wSpec, hSpec);
+
+    const sq = calculateSQ(Eg);
+    const lambda_cutoff = sq.lambda_max;
+
+    // Grid
+    ctxSpec.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctxSpec.lineWidth = 1;
+    for (let x = 35; x < wSpec; x += 40) {
+      ctxSpec.beginPath(); ctxSpec.moveTo(x, 15); ctxSpec.lineTo(x, hSpec - 25); ctxSpec.stroke();
+    }
+    for (let y = 20; y < hSpec - 20; y += 30) {
+      ctxSpec.beginPath(); ctxSpec.moveTo(35, y); ctxSpec.lineTo(wSpec - 15, y); ctxSpec.stroke();
+    }
+
+    // Axes
+    ctxSpec.strokeStyle = '#475569';
+    ctxSpec.lineWidth = 1.5;
+    ctxSpec.beginPath();
+    ctxSpec.moveTo(35, 15);
+    ctxSpec.lineTo(35, hSpec - 25);
+    ctxSpec.lineTo(wSpec - 15, hPes = hSpec - 25);
+    ctxSpec.stroke();
+
+    // Axis Labels
+    ctxSpec.fillStyle = '#94a3b8';
+    ctxSpec.font = '9px Inter, sans-serif';
+    ctxSpec.fillText('Intenzita I(λ)', 10, 20);
+    ctxSpec.fillText('λ [nm]', wSpec - 35, hSpec - 10);
+    ctxSpec.fillText('300', 35, hSpec - 10);
+    ctxSpec.fillText('550', 105, hSpec - 10);
+    ctxSpec.fillText('800', 175, hSpec - 10);
+    ctxSpec.fillText('1100', 255, hSpec - 10);
+
+    // Spectrum Mapping functions: lambda 300 to 1300 nm -> x from 35 to wSpec - 20
+    function mapX(l) {
+      return 35 + ((l - 300) / 1000) * (wSpec - 55);
+    }
+
+    // Solar AM1.5G Spectral curve approximation (Planck 5778K with atmospheric dips)
+    function solarIntensity(l) {
+      if (l < 300 || l > 1300) return 0;
+      // Planck peak at ~500 nm
+      const x = (l - 300) / 250;
+      let base = Math.pow(x, 1.8) * Math.exp(-x * 0.9) * 2.3;
+      // Atmospheric dips (O2 at 760nm, H2O at 940nm, 1130nm)
+      if (Math.abs(l - 760) < 25) base *= 0.65;
+      if (Math.abs(l - 940) < 40) base *= 0.45;
+      if (Math.abs(l - 1130) < 45) base *= 0.4;
+      return base; // height ~ 0 to 1.6
+    }
+
+    const baseFloorY = hSpec - 25;
+
+    // 1. Draw Sub-Bandgap Unabsorbed Region (Red/Dark area for lambda > lambda_cutoff)
+    const cutoffX = mapX(Math.min(1300, Math.max(300, lambda_cutoff)));
+    
+    // Draw Full Spectrum Background Curves
+    const steps = 80;
+    
+    // A. Useful & Thermalization vs Unabsorbed Regions
+    for (let s = 0; s < steps; s++) {
+      const l1 = 300 + (s / steps) * 1000;
+      const l2 = 300 + ((s + 1) / steps) * 1000;
+      const x1 = mapX(l1);
+      const x2 = mapX(l2);
+      const i1 = solarIntensity(l1);
+      const i2 = solarIntensity(l2);
+      const y1 = baseFloorY - i1 * 85;
+      const y2 = baseFloorY - i2 * 85;
+
+      const midL = (l1 + l2) / 2;
+
+      ctxSpec.beginPath();
+      ctxSpec.moveTo(x1, baseFloorY);
+      ctxSpec.lineTo(x1, y1);
+      ctxSpec.lineTo(x2, y2);
+      ctxSpec.lineTo(x2, baseFloorY);
+      ctxSpec.closePath();
+
+      if (midL > lambda_cutoff) {
+        // Unabsorbed / Transparent (Red/Dark)
+        ctxSpec.fillStyle = 'rgba(239, 68, 68, 0.22)';
+        ctxSpec.fill();
+      } else {
+        // Absorbed: Divide into Useful (Green bottom portion) and Thermalization (Yellow top portion)
+        // Ratio of useful energy = Eg / E_photon = (1240 / lambda_max) / (1240 / lambda) = lambda / lambda_max
+        const usefulRatio = Math.min(1.0, midL / lambda_cutoff);
+        const ySplit1 = baseFloorY - (baseFloorY - y1) * usefulRatio;
+        const ySplit2 = baseFloorY - (baseFloorY - y2) * usefulRatio;
+
+        // Useful portion (Green)
+        ctxSpec.beginPath();
+        ctxSpec.moveTo(x1, baseFloorY);
+        ctxSpec.lineTo(x1, ySplit1);
+        ctxSpec.lineTo(x2, ySplit2);
+        ctxSpec.lineTo(x2, baseFloorY);
+        ctxSpec.closePath();
+        ctxSpec.fillStyle = 'rgba(16, 185, 129, 0.65)';
+        ctxSpec.fill();
+
+        // Thermalization portion (Yellow)
+        ctxSpec.beginPath();
+        ctxSpec.moveTo(x1, ySplit1);
+        ctxSpec.lineTo(x1, y1);
+        ctxSpec.lineTo(x2, y2);
+        ctxSpec.lineTo(x2, ySplit2);
+        ctxSpec.closePath();
+        ctxSpec.fillStyle = 'rgba(245, 158, 11, 0.45)';
+        ctxSpec.fill();
+      }
+    }
+
+    // Solar Curve Outline
+    ctxSpec.strokeStyle = '#ffffff';
+    ctxSpec.lineWidth = 1.6;
+    ctxSpec.beginPath();
+    for (let s = 0; s <= steps; s++) {
+      const l = 300 + (s / steps) * 1000;
+      const x = mapX(l);
+      const y = baseFloorY - solarIntensity(l) * 85;
+      if (s === 0) ctxSpec.moveTo(x, y);
+      else ctxSpec.lineTo(x, y);
+    }
+    ctxSpec.stroke();
+
+    // 2. Draw Vertical Cutoff Line (Bandgap Edge λ_max)
+    if (lambda_cutoff >= 300 && lambda_cutoff <= 1300) {
+      ctxSpec.strokeStyle = '#00f5d4';
+      ctxSpec.lineWidth = 2.0;
+      ctxSpec.setLineDash([4, 3]);
+      ctxSpec.beginPath();
+      ctxSpec.moveTo(cutoffX, 22);
+      ctxSpec.lineTo(cutoffX, baseFloorY);
+      ctxSpec.stroke();
+      ctxSpec.setLineDash([]);
+
+      ctxSpec.fillStyle = '#00f5d4';
+      ctxSpec.font = 'bold 8.5px Inter, sans-serif';
+      ctxSpec.textAlign = 'center';
+      ctxSpec.fillText(`λ_max (${Math.round(lambda_cutoff)} nm)`, cutoffX, 18);
+    }
+
+    // 3. Draw Test Laser Marker Line
+    const laserX = mapX(Math.min(1300, Math.max(300, lambda)));
+    const laserCol = getWavelengthColor(lambda);
+
+    ctxSpec.strokeStyle = laserCol.hex;
+    ctxSpec.lineWidth = 2.5;
+    ctxSpec.beginPath();
+    ctxSpec.moveTo(laserX, 25);
+    ctxSpec.lineTo(laserX, baseFloorY);
+    ctxSpec.stroke();
+
+    // Laser indicator dot
+    ctxSpec.fillStyle = laserCol.hex;
+    ctxSpec.beginPath();
+    ctxSpec.arc(laserX, 28, 4, 0, Math.PI * 2);
+    ctxSpec.fill();
+    ctxSpec.strokeStyle = '#ffffff';
+    ctxSpec.lineWidth = 1;
+    ctxSpec.stroke();
+
+    // Spectrum Legend in top right
+    ctxSpec.font = '8px Inter, sans-serif';
+    ctxSpec.textAlign = 'right';
+    ctxSpec.fillStyle = '#10b981';
+    ctxSpec.fillText('■ Elektřina (přeměněno)', wSpec - 18, 28);
+    ctxSpec.fillStyle = '#f59e0b';
+    ctxSpec.fillText('■ Termalizace (teplo)', wSpec - 18, 39);
+    ctxSpec.fillStyle = '#ef4444';
+    ctxSpec.fillText('■ Prošlé světlo (λ > λ_max)', wSpec - 18, 50);
+  }
+
+  // Draw Quantum Band Structure & Particle Animation (Right Canvas)
+  function drawBandStructure() {
+    ctxBand.clearRect(0, 0, wBand, hBand);
+    ctxBand.fillStyle = '#060b17';
+    ctxBand.fillRect(0, 0, wBand, hBand);
+
+    const laserCol = getWavelengthColor(lambda);
+    const E_photon = 1239.84 / Math.max(10, lambda);
+    const isAbsorbed = E_photon >= Eg;
+
+    // Geometry of Band Boxes (Center-right area)
+    const bandX = 140;
+    const bandW = 160;
+    
+    // Scale gap height by Eg (Eg: 0.4 to 3.4 eV -> gap: 18 to 75 px)
+    const gapHeight = Math.min(80, Math.max(16, (Eg / 3.4) * 80));
+    const centerY = hBand / 2 + 5;
+    
+    const cbTopY = centerY - gapHeight / 2 - 42;
+    const cbBottomY = centerY - gapHeight / 2; // Conduction band edge
+    const vbTopY = centerY + gapHeight / 2;    // Valence band edge
+    const vbBottomY = centerY + gapHeight / 2 + 42;
+
+    // 1. Draw Conduction Band (LUMO / Prázdný vodivostní pás)
+    const cbGrad = ctxBand.createLinearGradient(bandX, cbBottomY, bandX, cbTopY);
+    cbGrad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+    cbGrad.addColorStop(1, 'rgba(56, 189, 248, 0.05)');
+    ctxBand.fillStyle = cbGrad;
+    ctxBand.fillRect(bandX, cbTopY, bandW, cbBottomY - cbTopY);
+    ctxBand.strokeStyle = '#38bdf8';
+    ctxBand.lineWidth = 1.8;
+    ctxBand.strokeRect(bandX, cbTopY, bandW, cbBottomY - cbTopY);
+
+    ctxBand.fillStyle = '#38bdf8';
+    ctxBand.font = 'bold 9px Inter, sans-serif';
+    ctxBand.textAlign = 'left';
+    ctxBand.fillText('Vodivostní pás (LUMO / e⁻ proud)', bandX + 8, cbTopY + 14);
+
+    // 2. Draw Valence Band (HOMO / Obsazený valenční pás)
+    const vbGrad = ctxBand.createLinearGradient(bandX, vbTopY, bandX, vbBottomY);
+    vbGrad.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+    vbGrad.addColorStop(1, 'rgba(16, 185, 129, 0.1)');
+    ctxBand.fillStyle = vbGrad;
+    ctxBand.fillRect(bandX, vbTopY, bandW, vbBottomY - vbTopY);
+    ctxBand.strokeStyle = '#10b981';
+    ctxBand.lineWidth = 1.8;
+    ctxBand.strokeRect(bandX, vbTopY, bandW, vbBottomY - vbTopY);
+
+    ctxBand.fillStyle = '#10b981';
+    ctxBand.font = 'bold 9px Inter, sans-serif';
+    ctxBand.fillText('Valenční pás (HOMO / elektrony)', bandX + 8, vbBottomY - 8);
+
+    // Valence band electron particles (blue spheres)
+    for (let e = 0; e < 6; e++) {
+      const ex = bandX + 22 + e * 24;
+      const ey = vbTopY + 16 + (e % 2 === 0 ? 4 : -4);
+      ctxBand.fillStyle = '#38bdf8';
+      ctxBand.beginPath();
+      ctxBand.arc(ex, ey, 5, 0, Math.PI * 2);
+      ctxBand.fill();
+      ctxBand.fillStyle = '#060b17';
+      ctxBand.font = 'bold 7px Inter, sans-serif';
+      ctxBand.textAlign = 'center';
+      ctxBand.textBaseline = 'middle';
+      ctxBand.fillText('−', ex, ey);
+    }
+
+    // 3. Draw Bandgap Bracket & Value
+    ctxBand.strokeStyle = '#00f5d4';
+    ctxBand.lineWidth = 1.5;
+    ctxBand.beginPath();
+    ctxBand.moveTo(bandX + bandW + 8, cbBottomY);
+    ctxBand.lineTo(bandX + bandW + 15, (cbBottomY + vbTopY) / 2);
+    ctxBand.lineTo(bandX + bandW + 8, vbTopY);
+    ctxBand.stroke();
+
+    ctxBand.fillStyle = '#00f5d4';
+    ctxBand.font = 'bold 9.5px Inter, sans-serif';
+    ctxBand.textAlign = 'left';
+    ctxBand.textBaseline = 'middle';
+    ctxBand.fillText(`E_g = ${Eg.toFixed(2)} eV`, bandX + bandW + 18, (cbBottomY + vbTopY) / 2);
+
+    // 4. Laser Emitter Nozzle (Left)
+    const nozzleX = 15;
+    const nozzleY = vbTopY + 10;
+    ctxBand.fillStyle = '#1e293b';
+    ctxBand.strokeStyle = '#475569';
+    ctxBand.lineWidth = 1.5;
+    ctxBand.beginPath();
+    ctxBand.roundRect(nozzleX, nozzleY - 14, 30, 28, 4);
+    ctxBand.fill();
+    ctxBand.stroke();
+
+    // Laser LED lens
+    ctxBand.fillStyle = laserCol.hex;
+    ctxBand.beginPath();
+    ctxBand.arc(nozzleX + 30, nozzleY, 6, -Math.PI / 2, Math.PI / 2);
+    ctxBand.fill();
+
+    ctxBand.fillStyle = '#94a3b8';
+    ctxBand.font = 'bold 8px Inter, sans-serif';
+    ctxBand.textAlign = 'center';
+    ctxBand.fillText('Laser', nozzleX + 15, nozzleY + 24);
+
+    // 5. Spawn and Update Photon Wavepackets
+    animTick++;
+    if (animTick % 32 === 0) {
+      photons.push({
+        x: nozzleX + 32,
+        y: nozzleY,
+        energy: E_photon,
+        color: laserCol.hex,
+        absorbed: false,
+        age: 0
+      });
+    }
+
+    // Update & Draw Photons
+    for (let p = photons.length - 1; p >= 0; p--) {
+      const ph = photons[p];
+      ph.x += 3.2;
+      ph.age++;
+
+      // Wave packet sine vibration
+      const waveY = ph.y + Math.sin(ph.age * 0.4) * 4;
+
+      ctxBand.fillStyle = ph.color;
+      ctxBand.beginPath();
+      ctxBand.arc(ph.x, waveY, 4, 0, Math.PI * 2);
+      ctxBand.fill();
+
+      // Tail
+      ctxBand.strokeStyle = ph.color;
+      ctxBand.lineWidth = 2;
+      ctxBand.beginPath();
+      ctxBand.moveTo(ph.x - 10, waveY);
+      ctxBand.lineTo(ph.x, waveY);
+      ctxBand.stroke();
+
+      // Interaction with semiconductor band interface (x ~ bandX + 15)
+      if (!ph.absorbed && ph.x >= bandX + 15 && ph.x <= bandX + 45) {
+        if (isAbsorbed) {
+          ph.absorbed = true;
+          // Spawn Excited Electron jump
+          excitedElectrons.push({
+            startX: bandX + 35,
+            startY: vbTopY + 10,
+            targetX: bandX + 65,
+            targetY: cbBottomY - 10,
+            progress: 0,
+            excessE: E_photon - Eg
+          });
+          // Remove photon
+          photons.splice(p, 1);
+          continue;
+        }
+      }
+
+      // Remove offscreen photons
+      if (ph.x > wBand + 10) {
+        photons.splice(p, 1);
+      }
+    }
+
+    // Update & Draw Excited Electron jumps
+    for (let e = excitedElectrons.length - 1; e >= 0; e--) {
+      const el = excitedElectrons[e];
+      el.progress += 0.045;
+
+      if (el.progress <= 1.0) {
+        // Parabolic jump arc from VB to CB
+        const curX = el.startX + (el.targetX - el.startX) * el.progress;
+        const curY = el.startY + (el.targetY - el.startY) * el.progress;
+
+        // Draw Electron
+        ctxBand.fillStyle = '#00f5d4';
+        ctxBand.beginPath();
+        ctxBand.arc(curX, curY, 5.5, 0, Math.PI * 2);
+        ctxBand.fill();
+
+        // Upward Excitation Arrow
+        ctxBand.strokeStyle = '#00f5d4';
+        ctxBand.lineWidth = 2;
+        ctxBand.setLineDash([2, 2]);
+        ctxBand.beginPath();
+        ctxBand.moveTo(el.startX, el.startY);
+        ctxBand.lineTo(curX, curY);
+        ctxBand.stroke();
+        ctxBand.setLineDash([]);
+
+        // Spark / Thermalization indicator if high excess energy
+        if (el.excessE > 0.4) {
+          ctxBand.fillStyle = '#f59e0b';
+          ctxBand.font = 'bold 8px Inter, sans-serif';
+          ctxBand.textAlign = 'center';
+          ctxBand.fillText(`+${el.excessE.toFixed(2)} eV teplo`, curX + 35, curY);
+        }
+      } else {
+        // Electron moves out into the circuit (to the right edge of CB)
+        const curX = el.targetX + (el.progress - 1.0) * 90;
+        const curY = el.targetY;
+
+        ctxBand.fillStyle = '#00f5d4';
+        ctxBand.beginPath();
+        ctxBand.arc(curX, curY, 5, 0, Math.PI * 2);
+        ctxBand.fill();
+
+        if (curX > bandX + bandW - 10) {
+          excitedElectrons.splice(e, 1);
+        }
+      }
+    }
+
+    // Transparent pass-through text indicator if not absorbed
+    if (!isAbsorbed) {
+      ctxBand.fillStyle = 'rgba(239, 68, 68, 0.85)';
+      ctxBand.font = 'bold 8.5px Inter, sans-serif';
+      ctxBand.textAlign = 'center';
+      ctxBand.fillText('Prochází bez absorpce (E_fot < E_g)', bandX + bandW / 2, centerY);
+    }
+  }
+
+  // Update Numerical Indicators & Text Badges
+  function updateUI() {
+    const sq = calculateSQ(Eg);
+    const laserCol = getWavelengthColor(lambda);
+    const E_photon = 1239.84 / Math.max(10, lambda);
+    const isAbsorbed = E_photon >= Eg;
+
+    // Sliders text
+    if (egValEl) egValEl.innerText = `${Eg.toFixed(2)} eV`;
+    if (wlValEl) wlValEl.innerText = `${Math.round(lambda)} nm (${laserCol.name})`;
+
+    // Metrics
+    if (effValEl) effValEl.innerText = `${sq.eta.toFixed(1)} %`;
+    if (lambdaMaxEl) lambdaMaxEl.innerText = `${Math.round(sq.lambda_max)} nm (${sq.lambda_max > 750 ? 'IR' : 'Viditelné'})`;
+    if (vocValEl) vocValEl.innerText = `${sq.Voc.toFixed(2)} V`;
+    if (jscValEl) jscValEl.innerText = `${sq.Jsc.toFixed(1)} mA/cm²`;
+
+    if (cutoffLabel) cutoffLabel.innerText = `λ_max = ${Math.round(sq.lambda_max)} nm`;
+
+    // Quantum status badge
+    if (quantumStateBadge) {
+      if (isAbsorbed) {
+        quantumStateBadge.innerText = '⚡ Excitace aktivní';
+        quantumStateBadge.style.color = '#10b981';
+      } else {
+        quantumStateBadge.innerText = '❌ Bez absorpce';
+        quantumStateBadge.style.color = '#ef4444';
+      }
+    }
+
+    // Laser status detailed card
+    if (laserStatusCard) {
+      if (isAbsorbed) {
+        const excess = (E_photon - Eg).toFixed(2);
+        laserStatusCard.style.background = 'rgba(16, 185, 129, 0.1)';
+        laserStatusCard.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+        laserStatusCard.innerHTML = `✅ <strong>Foton testovacího laseru (${Math.round(lambda)} nm) absorbován!</strong> Energie fotonu <i>E</i><sub>fot</sub> = ${E_photon.toFixed(2)} eV překonává bandgap <i>E</i><sub>g</sub> = ${Eg.toFixed(2)} eV. Elektron přechází do vodivostního pásu (přebytek <strong>${excess} eV</strong> se termalizuje na teplo).`;
+      } else {
+        const deficit = (Eg - E_photon).toFixed(2);
+        laserStatusCard.style.background = 'rgba(239, 68, 68, 0.1)';
+        laserStatusCard.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+        laserStatusCard.innerHTML = `❌ <strong>Foton (${Math.round(lambda)} nm) neabsorbován!</strong> Energie fotonu <i>E</i><sub>fot</sub> = ${E_photon.toFixed(2)} eV je menší než bandgap <i>E</i><sub>g</sub> = ${Eg.toFixed(2)} eV (chybí <strong>${deficit} eV</strong>). Foton prochází materiálem bez excitace jako nevyužité záření.`;
+      }
+    }
+  }
+
+  function renderLoop() {
+    drawSpectrum();
+    drawBandStructure();
+    animFrameId = requestAnimationFrame(renderLoop);
+  }
+
+  // --- Event Listeners ---
+  egSlider.addEventListener('input', (e) => {
+    Eg = parseFloat(e.target.value);
+    presetBtns.forEach(b => b.classList.remove('active'));
+    updateUI();
+  });
+
+  wlSlider.addEventListener('input', (e) => {
+    lambda = parseFloat(e.target.value);
+    updateUI();
+  });
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      Eg = parseFloat(btn.getAttribute('data-eg'));
+      egSlider.value = Eg;
+      updateUI();
+    });
+  });
+
+  updateUI();
+  renderLoop();
 }
