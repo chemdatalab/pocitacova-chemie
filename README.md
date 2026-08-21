@@ -28,7 +28,7 @@ Oficiální webová prezentace, interaktivní učebnice a studijní materiály n
      - ⚡ *Vibrační pohyby a IR spektroskopie* (animované molekuly $H_2O$ a $CO_2$)
      - ⚡ *Simulátor dokování léčiv* (usazení ligandu do vazebné kapsy enzymu)
      - ⚡ *AlphaFold & Mol\* 3D Protein Explorer* (Nobelova cena za chemii 2024)
-3. **Informační leták ([`letak.html`](letak.html) & [`assets/docs/letak-pocitacova-chemie-upol.pdf`](assets/docs/letak-pocitacova-chemie-upol.pdf))**
+3. **Informační leták ([`PCH-letak2.png`](PCH-letak2.png))**
    - Přehledný formátovaný propagační leták připravený k tisku a distribuci pro střední školy.
 
 ---
