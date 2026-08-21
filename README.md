@@ -25,7 +25,7 @@ Oficiální webová prezentace, interaktivní učebnice a studijní materiály n
    - Interaktivní simulátory přímo v prohlížeči:
      - ⚡ *Trojúhelník kompromisů* (výpočetní metody QM, MD, CG, Bod D / AI)
      - ⚡ *Vazba H₂ a Morseův potenciál* (propojeno s [3D Orbital Simulator](https://karelberka.github.io/orbital-simulator/))
-     - ⚡ *Vibrační pohyby a IR spektroskopie* (animované molekuly $H_2O$ a $CO_2$)
+     - ⚡ *Molekulová dynamika vody a fázové stavy* (Led, Voda, Pára s volbou $T$ a $p$, H-můstky a fázový diagram)
      - ⚡ *Simulátor dokování léčiv* (usazení ligandu do vazebné kapsy enzymu)
      - ⚡ *AlphaFold & Mol\* 3D Protein Explorer* (Nobelova cena za chemii 2024)
 3. **Informační leták ([`PCH-letak2.png`](PCH-letak2.png))**

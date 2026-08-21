@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTriangleSimulator();
   initH2MorseSimulator();
   initPESOptimizationSimulator();
-  initVibrationalIRSimulator();
+  initWaterPhaseMDSimulator();
   initCoarseGrainedMolstarViewer();
   initChemoinformaticsLab();
   initDockingSimulator();
@@ -871,226 +871,537 @@ function initPESOptimizationSimulator() {
 }
 
 /* ==========================================================================
-   3. KLASICKÁ MECHANIKA: VIBRAČNÍ POHYBY & IR SPEKTRA
+   3. KLASICKÁ MOLEKULOVÁ DYNAMIKA: FÁZOVÉ CHOVÁNÍ VODY (LED, VODA, PÁRA)
    ========================================================================== */
-function initVibrationalIRSimulator() {
-  const canvas = document.getElementById('ir-canvas');
+function initWaterPhaseMDSimulator() {
+  const canvas = document.getElementById('water-md-canvas');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
   const width = canvas.width = 540;
-  const height = canvas.height = 320;
+  const height = canvas.height = 340;
 
-  let activeMode = 'h2o_bend'; // h2o_sym, h2o_asym, h2o_bend, co2_asym
-  let animTime = 0;
+  // DOM Elements
+  const tempSlider = document.getElementById('water-temp-slider');
+  const pressSlider = document.getElementById('water-press-slider');
+  const tempValEl = document.getElementById('water-temp-val');
+  const pressValEl = document.getElementById('water-press-val');
+  const phaseBadge = document.getElementById('water-phase-badge');
+  const hbondsCountEl = document.getElementById('water-hbonds-count');
+  const velocityValEl = document.getElementById('water-velocity-val');
+  const boilPtValEl = document.getElementById('water-boil-pt-val');
+  const playBtn = document.getElementById('water-play-btn');
+  const resetBtn = document.getElementById('water-reset-btn');
+  const hbondsToggle = document.getElementById('water-hbonds-toggle');
+  const presetBtns = document.querySelectorAll('.water-preset-btn');
 
-  const modeButtons = document.querySelectorAll('.ir-mode-btn');
-  const irDesc = document.getElementById('ir-mode-desc');
-  const irFreq = document.getElementById('ir-mode-freq');
+  // Simulation Parameters
+  let T = parseFloat(tempSlider ? tempSlider.value : -15); // Temperature in Celsius (-40 to 200)
+  let p = parseFloat(pressSlider ? pressSlider.value : 1.0); // Pressure in atm (0.1 to 5.0)
+  let isRunning = true;
+  let animId = null;
+  let showHbonds = hbondsToggle ? hbondsToggle.checked : true;
 
-  const modesData = {
-    'h2o_bend': {
-      name: 'H₂O: Deformační kmit (nůžkový / scissoring)',
-      freq: '1595 cm⁻¹ (6.27 µm)',
-      desc: 'Mění se úhel vazby H-O-H. Atomy vodíku se synchronně přibližují a oddalují od sebe, zatímco atom kyslíku kmitá v protisměru.',
-      peakWn: 1595
-    },
-    'h2o_sym': {
-      name: 'H₂O: Symetrický valenční kmit (stretching)',
-      freq: '3657 cm⁻¹ (2.73 µm)',
-      desc: 'Obě vazby O-H se současně natahují a zkracují ve stejné fázi. Dochází k významné změně dipólového momentu.',
-      peakWn: 3657
-    },
-    'h2o_asym': {
-      name: 'H₂O: Asymetrický valenční kmit (asym. stretching)',
-      freq: '3756 cm⁻¹ (2.66 µm)',
-      desc: 'Zatímco jedna vazba O-H se natahuje, druhá se zkracuje. Velmi silný absorpční pás v infračervené oblasti.',
-      peakWn: 3756
-    },
-    'co2_asym': {
-      name: 'CO₂: Asymetrický valenční kmit (skleníkový plyn)',
-      freq: '2349 cm⁻¹ (4.26 µm)',
-      desc: 'Uhlík kmitá mezi dvěma kyslíky. Způsobuje silnou absorpci IR záření zemského povrchu – klíčový mechanismus skleníkového efektu!',
-      peakWn: 2349
-    }
-  };
+  // Number of water molecules in 2D box
+  const numCols = 8;
+  const numRows = 6;
+  const N = numCols * numRows; // 48 molecules
 
-  modeButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      modeButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeMode = btn.getAttribute('data-mode');
+  const molecules = [];
+  const O_RADIUS = 7.5;
+  const H_RADIUS = 4.2;
+  const OH_DIST = 11.5; // pixels
+  const HOH_ANGLE = 104.5 * (Math.PI / 180);
 
-      const data = modesData[activeMode];
-      if (data) {
-        if (irDesc) irDesc.innerText = data.desc;
-        if (irFreq) irFreq.innerText = `${data.name} | Frekvence: ${data.freq}`;
+  // Initialize Hexagonal Ice Lattice Coordinates
+  function initLattice() {
+    molecules.length = 0;
+    const paddingX = 40;
+    const paddingY = 45;
+    const usableW = width - 150 - paddingX * 2; // Leave right side for mini phase diagram
+    const usableH = height - paddingY * 2;
+
+    const dx = usableW / (numCols - 1);
+    const dy = usableH / (numRows - 1);
+
+    for (let r = 0; r < numRows; r++) {
+      for (let c = 0; c < numCols; c++) {
+        // Hexagonal staggered offset
+        const xOffset = (r % 2 === 1) ? dx * 0.5 : 0;
+        const lx = paddingX + c * dx + xOffset;
+        const ly = paddingY + r * dy;
+
+        // Ice orientation: alternating tetrahedral network
+        const targetAngle = ((r + c) % 2 === 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.2;
+
+        molecules.push({
+          x: lx,
+          y: ly,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          lx: lx, // Lattice home X
+          ly: ly, // Lattice home Y
+          angle: targetAngle,
+          targetAngle: targetAngle,
+          vRot: (Math.random() - 0.5) * 0.02,
+          hBondCount: 0
+        });
       }
+    }
+  }
+
+  initLattice();
+
+  // Clausius-Clapeyron: Boiling point as function of pressure (p in atm)
+  function getBoilingPoint(pressAtm) {
+    // T_boil = 100 °C at 1.0 atm; at 0.33 atm ~ 70 °C; at 2 atm ~ 120 °C
+    return 100.0 + 28.0 * (Math.log(pressAtm) / Math.LN10);
+  }
+
+  function updateStateLabels() {
+    const T_Kelvin = Math.round(T + 273.15);
+    const p_kPa = (p * 101.325).toFixed(1);
+    const T_boil = getBoilingPoint(p);
+
+    if (tempValEl) tempValEl.innerText = `${T > 0 ? '+' : ''}${Math.round(T)} °C (${T_Kelvin} K)`;
+    if (pressValEl) pressValEl.innerText = `${p.toFixed(2)} atm (${p_kPa} kPa)`;
+    if (boilPtValEl) boilPtValEl.innerText = `${T_boil.toFixed(1)} °C`;
+
+    // Phase identification
+    if (phaseBadge) {
+      if (T <= 0) {
+        phaseBadge.innerText = '🧊 Led (Krystalická mřížka)';
+        phaseBadge.style.color = '#38bdf8';
+      } else if (T >= T_boil) {
+        phaseBadge.innerText = '♨️ Vodní pára (Plyn / Expanze)';
+        phaseBadge.style.color = '#f59e0b';
+      } else {
+        phaseBadge.innerText = '💧 Kapalná voda (Dynamická síť)';
+        phaseBadge.style.color = '#10b981';
+      }
+    }
+
+    // Average molecule velocity in m/s (proportional to sqrt(T_K))
+    const avgV_ms = Math.round(Math.sqrt(T_Kelvin) * 28.5);
+    if (velocityValEl) velocityValEl.innerText = `${avgV_ms} m/s`;
+  }
+
+  // --- Physical Step & Force Integration ---
+  function physicsStep() {
+    const T_boil = getBoilingPoint(p);
+    const T_Kelvin = T + 273.15;
+    const thermalSpeed = Math.sqrt(Math.max(10, T_Kelvin)) * 0.08;
+
+    // Simulation chamber bounds (leave right 135px for p-T diagram)
+    const boxLeft = 18;
+    const boxRight = width - 145;
+    const boxBottom = height - 18;
+    // Piston top bounds (higher pressure -> compressed volume)
+    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 12;
+
+    const isIce = T <= 0;
+    const isGas = T >= T_boil;
+    const isLiquid = !isIce && !isGas;
+
+    // 1. Reset H-bond counters
+    molecules.forEach(m => { m.hBondCount = 0; });
+
+    let totalHbonds = 0;
+    const HBOND_DIST_MAX = 42; // pixels
+
+    // 2. Intermolecular Interactions (Lennard-Jones + Electrostatic H-bonding)
+    for (let i = 0; i < N; i++) {
+      const mi = molecules[i];
+
+      for (let j = i + 1; j < N; j++) {
+        const mj = molecules[j];
+        const dx = mj.x - mi.x;
+        const dy = mj.y - mi.y;
+        const distSq = dx * dx + dy * dy;
+        const dist = Math.sqrt(distSq) || 0.001;
+
+        // Lennard-Jones core repulsion (d < 22 px)
+        if (dist < 22) {
+          const overlap = 22 - dist;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const repForce = overlap * (isIce ? 0.35 : (isLiquid ? 0.25 : 0.45));
+
+          mi.vx -= nx * repForce;
+          mi.vy -= ny * repForce;
+          mj.vx += nx * repForce;
+          mj.vy += ny * repForce;
+        }
+
+        // Hydrogen Bonding Attraction (d between 24 and 44 px in liquid & ice)
+        if (!isGas && dist >= 22 && dist < HBOND_DIST_MAX) {
+          const strength = isIce ? 0.06 : 0.035;
+          const idealD = 30;
+          const dDiff = dist - idealD;
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          mi.vx += nx * dDiff * strength;
+          mi.vy += ny * dDiff * strength;
+          mj.vx -= nx * dDiff * strength;
+          mj.vy -= ny * dDiff * strength;
+
+          mi.hBondCount++;
+          mj.hBondCount++;
+          totalHbonds++;
+        }
+      }
+
+      // 3. Phase-Specific Mechanics
+      if (isIce) {
+        // Lattice restoration spring force (pulls towards rigid hexagonal grid)
+        const iceStiffness = Math.min(0.2, ((-T) + 5) * 0.008);
+        const ldx = mi.lx - mi.x;
+        const ldy = mi.ly - mi.y;
+
+        mi.vx += ldx * iceStiffness;
+        mi.vy += ldy * iceStiffness;
+
+        // Damping / Thermal vibration around lattice
+        mi.vx *= 0.88;
+        mi.vy *= 0.88;
+        mi.vx += (Math.random() - 0.5) * (thermalSpeed * 0.35);
+        mi.vy += (Math.random() - 0.5) * (thermalSpeed * 0.35);
+
+        // Orientational lock
+        const angDiff = mi.targetAngle - mi.angle;
+        mi.vRot += angDiff * 0.1;
+        mi.vRot *= 0.8;
+        mi.angle += mi.vRot;
+
+      } else if (isLiquid) {
+        // Liquid: continuous diffusion, molecular tumbling and collective cohesion
+        // Weak gravity & cohesion towards bottom of container
+        mi.vy += 0.015;
+
+        // Thermostat (gentle velocity rescaling towards target thermalSpeed)
+        const curSpeed = Math.sqrt(mi.vx * mi.vx + mi.vy * mi.vy) || 0.001;
+        const targetSpeed = thermalSpeed * 1.1;
+        mi.vx = (mi.vx / curSpeed) * (curSpeed * 0.95 + targetSpeed * 0.05);
+        mi.vy = (mi.vy / curSpeed) * (curSpeed * 0.95 + targetSpeed * 0.05);
+
+        mi.vx += (Math.random() - 0.5) * 0.25;
+        mi.vy += (Math.random() - 0.5) * 0.25;
+
+        mi.vRot += (Math.random() - 0.5) * 0.04;
+        mi.vRot *= 0.92;
+        mi.angle += mi.vRot;
+
+      } else {
+        // Gas / Steam: Free Maxwell-Boltzmann thermal dispersion, fill entire container
+        const curSpeed = Math.sqrt(mi.vx * mi.vx + mi.vy * mi.vy) || 0.001;
+        const targetSpeed = thermalSpeed * 1.8;
+        mi.vx = (mi.vx / curSpeed) * (curSpeed * 0.9 + targetSpeed * 0.1);
+        mi.vy = (mi.vy / curSpeed) * (curSpeed * 0.9 + targetSpeed * 0.1);
+
+        mi.vRot += (Math.random() - 0.5) * 0.1;
+        mi.vRot *= 0.98;
+        mi.angle += mi.vRot;
+      }
+
+      // 4. Update Position
+      mi.x += mi.vx;
+      mi.y += mi.vy;
+
+      // 5. Container Boundary Collisions with Elastic Bounce
+      const rBound = O_RADIUS + 4;
+      if (mi.x < boxLeft + rBound) { mi.x = boxLeft + rBound; mi.vx = Math.abs(mi.vx) * 0.85; }
+      if (mi.x > boxRight - rBound) { mi.x = boxRight - rBound; mi.vx = -Math.abs(mi.vx) * 0.85; }
+      if (mi.y < boxTop + rBound) { mi.y = boxTop + rBound; mi.vy = Math.abs(mi.vy) * 0.85; }
+      if (mi.y > boxBottom - rBound) { mi.y = boxBottom - rBound; mi.vy = -Math.abs(mi.vy) * 0.85; }
+    }
+
+    // Update H-bonds per molecule metric
+    if (hbondsCountEl) {
+      if (isGas) {
+        hbondsCountEl.innerText = `0.1 / molekulu`;
+      } else {
+        const avgHbonds = ((totalHbonds * 2) / N).toFixed(1);
+        hbondsCountEl.innerText = `${avgHbonds} / molekulu`;
+      }
+    }
+  }
+
+  // --- Rendering ---
+  function render() {
+    ctx.clearRect(0, 0, width, height);
+
+    // Background
+    ctx.fillStyle = '#060b17';
+    ctx.fillRect(0, 0, width, height);
+
+    // Chamber bounds
+    const boxLeft = 18;
+    const boxRight = width - 145;
+    const boxBottom = height - 18;
+    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 12;
+
+    // 1. Draw Simulation Chamber (Walls & Piston)
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+
+    // Piston top plate (Pressure indicator)
+    ctx.fillStyle = 'rgba(51, 65, 85, 0.8)';
+    ctx.fillRect(boxLeft - 4, boxTop - 8, boxRight - boxLeft + 8, 8);
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 9px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Píst: p = ${p.toFixed(2)} atm`, (boxLeft + boxRight) / 2, boxTop - 12);
+
+    // 2. Draw Hydrogen Bonds (Dashed Cyan Lines)
+    if (showHbonds && T < getBoilingPoint(p)) {
+      ctx.strokeStyle = T <= 0 ? 'rgba(0, 245, 212, 0.55)' : 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = T <= 0 ? 1.8 : 1.2;
+      ctx.setLineDash([3, 3]);
+
+      for (let i = 0; i < N; i++) {
+        const mi = molecules[i];
+        for (let j = i + 1; j < N; j++) {
+          const mj = molecules[j];
+          const dx = mj.x - mi.x;
+          const dy = mj.y - mi.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist >= 20 && dist < 42) {
+            ctx.beginPath();
+            ctx.moveTo(mi.x, mi.y);
+            ctx.lineTo(mj.x, mj.y);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.setLineDash([]);
+    }
+
+    // 3. Draw Water Molecules (H2O)
+    for (let i = 0; i < N; i++) {
+      const m = molecules[i];
+
+      // Calculate 2 Hydrogen coordinates based on orientation angle
+      const halfAng = HOH_ANGLE / 2;
+      const h1x = m.x + Math.cos(m.angle - halfAng) * OH_DIST;
+      const h1y = m.y + Math.sin(m.angle - halfAng) * OH_DIST;
+      const h2x = m.x + Math.cos(m.angle + halfAng) * OH_DIST;
+      const h2y = m.y + Math.sin(m.angle + halfAng) * OH_DIST;
+
+      // Covalent bonds (O-H)
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(h1x, h1y);
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(h2x, h2y);
+      ctx.stroke();
+
+      // Oxygen atom (Red sphere with specular gradient)
+      const oGrad = ctx.createRadialGradient(m.x - 2, m.y - 2, 1, m.x, m.y, O_RADIUS);
+      oGrad.addColorStop(0, '#fca5a5');
+      oGrad.addColorStop(0.4, '#ef4444');
+      oGrad.addColorStop(1, '#991b1b');
+
+      ctx.fillStyle = oGrad;
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, O_RADIUS, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Oxygen symbol / charge
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 7px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('O', m.x, m.y);
+
+      // Hydrogen atoms (White spheres)
+      [ { x: h1x, y: h1y }, { x: h2x, y: h2y } ].forEach(h => {
+        const hGrad = ctx.createRadialGradient(h.x - 1, h.y - 1, 0.5, h.x, h.y, H_RADIUS);
+        hGrad.addColorStop(0, '#ffffff');
+        hGrad.addColorStop(0.6, '#e2e8f0');
+        hGrad.addColorStop(1, '#64748b');
+
+        ctx.fillStyle = hGrad;
+        ctx.beginPath();
+        ctx.arc(h.x, h.y, H_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 4. Draw Mini Phase Diagram (Right Side p-T Graph)
+    drawMiniPhaseDiagram(ctx, width - 130, 20, 115, height - 40, T, p);
+
+    if (isRunning) {
+      physicsStep();
+      animId = requestAnimationFrame(render);
+    }
+  }
+
+  // Mini p-T Phase Diagram of Water
+  function drawMiniPhaseDiagram(ctx, px, py, pw, ph, curT, curP) {
+    // Card background
+    ctx.fillStyle = '#0b1329';
+    ctx.strokeStyle = 'rgba(0, 180, 216, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(px, py, pw, ph, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Title
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 9px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Fázový p-T diagram', px + pw / 2, py + 15);
+
+    // Axes
+    const graphLeft = px + 22;
+    const graphBottom = py + ph - 22;
+    const graphW = pw - 30;
+    const graphH = ph - 45;
+
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(graphLeft, py + 22);
+    ctx.lineTo(graphLeft, graphBottom);
+    ctx.lineTo(graphLeft + graphW, graphBottom);
+    ctx.stroke();
+
+    // Axis Labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '8px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('p', graphLeft - 4, py + 30);
+    ctx.textAlign = 'center';
+    ctx.fillText('T [°C]', graphLeft + graphW / 2, graphBottom + 14);
+
+    // Coordinate scaling: T from -40 to 200, p from 0.1 to 5.0 (log scale for p)
+    function scaleT(tVal) {
+      const norm = (tVal - (-40)) / (200 - (-40));
+      return graphLeft + norm * graphW;
+    }
+    function scaleP(pVal) {
+      const logP = Math.log10(pVal);
+      const logMin = Math.log10(0.1);
+      const logMax = Math.log10(5.0);
+      const norm = (logP - logMin) / (logMax - logMin);
+      return graphBottom - norm * graphH;
+    }
+
+    // Phase Boundary Lines:
+    // 1. Solid-Liquid (T_m ~ 0 °C line)
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(scaleT(0), scaleP(0.1));
+    ctx.lineTo(scaleT(-2), scaleP(5.0)); // Negative slope of water melting curve!
+    ctx.stroke();
+
+    // 2. Liquid-Gas (Boiling curve Clausius-Clapeyron)
+    ctx.strokeStyle = '#f59e0b';
+    ctx.beginPath();
+    for (let step = 0; step <= 25; step++) {
+      const pStep = 0.1 + (step / 25) * 4.9;
+      const tBoilStep = getBoilingPoint(pStep);
+      const gx = scaleT(tBoilStep);
+      const gy = scaleP(pStep);
+      if (step === 0) ctx.moveTo(gx, gy);
+      else ctx.lineTo(gx, gy);
+    }
+    ctx.stroke();
+
+    // Phase Region Labels
+    ctx.font = 'bold 8px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+    ctx.fillText('LED', scaleT(-20), scaleP(2.5));
+
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.7)';
+    ctx.fillText('VODA', scaleT(50), scaleP(2.5));
+
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.7)';
+    ctx.fillText('PÁRA', scaleT(160), scaleP(0.6));
+
+    // Current State Dot
+    const dotX = scaleT(Math.min(200, Math.max(-40, curT)));
+    const dotY = scaleP(Math.min(5.0, Math.max(0.1, curP)));
+
+    // Glowing ring
+    ctx.fillStyle = 'rgba(6, 214, 160, 0.35)';
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dot
+    ctx.fillStyle = '#06d6a0';
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // --- Event Handlers ---
+  if (tempSlider) {
+    tempSlider.addEventListener('input', (e) => {
+      T = parseFloat(e.target.value);
+      presetBtns.forEach(b => b.classList.remove('active'));
+      updateStateLabels();
+    });
+  }
+
+  if (pressSlider) {
+    pressSlider.addEventListener('input', (e) => {
+      p = parseFloat(e.target.value);
+      presetBtns.forEach(b => b.classList.remove('active'));
+      updateStateLabels();
+    });
+  }
+
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      T = parseFloat(btn.getAttribute('data-temp'));
+      p = parseFloat(btn.getAttribute('data-press'));
+
+      if (tempSlider) tempSlider.value = T;
+      if (pressSlider) pressSlider.value = p;
+
+      updateStateLabels();
     });
   });
 
-  function render() {
-    ctx.clearRect(0, 0, width, height);
-    animTime += 0.065;
-
-    // Split Canvas: Left side = Animated Molecule, Right side = IR Spectrum
-    const molWidth = 240;
-    const specWidth = 280;
-
-    // Draw Molecule background
-    ctx.fillStyle = '#0a1128';
-    ctx.beginPath();
-    ctx.roundRect(10, 10, molWidth, height - 20, 10);
-    ctx.fill();
-
-    // Draw Spectrum background
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath();
-    ctx.roundRect(molWidth + 20, 10, specWidth, height - 20, 10);
-    ctx.fill();
-
-    // 1. Draw Molecule Animation
-    drawVibratingMolecule(ctx, molWidth / 2 + 10, height / 2 - 10, activeMode, animTime);
-
-    // 2. Draw IR Spectrum
-    drawIRSpectrum(ctx, molWidth + 30, 25, specWidth - 20, height - 50, activeMode);
-
-    requestAnimationFrame(render);
+  if (playBtn) {
+    playBtn.addEventListener('click', () => {
+      isRunning = !isRunning;
+      playBtn.innerText = isRunning ? '⏸ Pozastavit' : '▶ Spustit';
+      playBtn.classList.toggle('btn-primary', isRunning);
+      playBtn.classList.toggle('btn-secondary', !isRunning);
+      if (isRunning) render();
+    });
   }
 
-  function drawVibratingMolecule(ctx, cx, cy, mode, t) {
-    const amp = Math.sin(t) * 12;
-
-    if (mode.startsWith('h2o')) {
-      let oxy = { x: cx, y: cy - 25 };
-      let h1 = { x: cx - 45, y: cy + 30 };
-      let h2 = { x: cx + 45, y: cy + 30 };
-
-      if (mode === 'h2o_bend') {
-        oxy.y -= amp * 0.4;
-        h1.x += amp * 0.9;
-        h2.x -= amp * 0.9;
-      } else if (mode === 'h2o_sym') {
-        oxy.y -= amp * 0.5;
-        h1.x -= amp * 0.8; h1.y += amp * 0.8;
-        h2.x += amp * 0.8; h2.y += amp * 0.8;
-      } else if (mode === 'h2o_asym') {
-        oxy.x += amp * 0.4;
-        h1.x -= amp * 0.9; h1.y += amp * 0.9;
-        h2.x -= amp * 0.9; h2.y -= amp * 0.9;
-      }
-
-      // Springs (Bonds)
-      drawSpring(ctx, oxy.x, oxy.y, h1.x, h1.y);
-      drawSpring(ctx, oxy.x, oxy.y, h2.x, h2.y);
-
-      // Oxygen Atom
-      drawAtom(ctx, oxy.x, oxy.y, 18, '#ef4444', 'O');
-      // Hydrogen Atoms
-      drawAtom(ctx, h1.x, h1.y, 11, '#ffffff', 'H');
-      drawAtom(ctx, h2.x, h2.y, 11, '#ffffff', 'H');
-
-    } else if (mode === 'co2_asym') {
-      let c = { x: cx + amp * 0.9, y: cy };
-      let o1 = { x: cx - 70 - amp * 0.5, y: cy };
-      let o2 = { x: cx + 70 - amp * 0.5, y: cy };
-
-      drawSpring(ctx, o1.x, o1.y, c.x, c.y);
-      drawSpring(ctx, c.x, c.y, o2.x, o2.y);
-
-      drawAtom(ctx, c.x, c.y, 15, '#38bdf8', 'C');
-      drawAtom(ctx, o1.x, o1.y, 17, '#ef4444', 'O');
-      drawAtom(ctx, o2.x, o2.y, 17, '#ef4444', 'O');
-    }
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      initLattice();
+      if (!isRunning) render();
+    });
   }
 
-  function drawSpring(ctx, x1, y1, x2, y2) {
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
+  if (hbondsToggle) {
+    hbondsToggle.addEventListener('change', (e) => {
+      showHbonds = e.target.checked;
+    });
   }
 
-  function drawAtom(ctx, x, y, r, color, symbol) {
-    const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 1, x, y, r);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.3, color);
-    grad.addColorStop(1, '#000000');
-
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = color === '#ffffff' ? '#0f172a' : '#ffffff';
-    ctx.font = `bold ${Math.round(r * 0.9)}px Inter, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(symbol, x, y);
-  }
-
-  function drawIRSpectrum(ctx, sx, sy, sw, sh, mode) {
-    // Axes: X = Wavenumber 4000 -> 500 cm^-1, Y = Transmittance %
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 1;
-
-    ctx.beginPath();
-    ctx.moveTo(sx + 30, sy + sh - 25);
-    ctx.lineTo(sx + sw - 10, sy + sh - 25);
-    ctx.stroke();
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('4000', sx + 40, sy + sh - 10);
-    ctx.fillText('2000', sx + sw / 2, sy + sh - 10);
-    ctx.fillText('500 cm⁻¹', sx + sw - 25, sy + sh - 10);
-
-    ctx.fillText('IR Absorpční spektrum', sx + sw / 2, sy + 12);
-
-    // Synthetic IR Spectrum line with dips (Absorption peaks)
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    const peak = modesData[mode].peakWn;
-
-    for (let x = 0; x < sw - 50; x += 2) {
-      // Map x to wavenumber (4000 to 500)
-      const wn = 4000 - (x / (sw - 50)) * 3500;
-      let y = sy + 35; // 100% transmittance baseline
-
-      // Peak 1: 3700 cm^-1 (H2O val)
-      const d1 = Math.abs(wn - 3700);
-      if (d1 < 180) y += Math.exp(-(d1 * d1) / 3000) * 140;
-
-      // Peak 2: 2349 cm^-1 (CO2)
-      const d2 = Math.abs(wn - 2349);
-      if (d2 < 120) y += Math.exp(-(d2 * d2) / 1800) * 160;
-
-      // Peak 3: 1595 cm^-1 (H2O bend)
-      const d3 = Math.abs(wn - 1595);
-      if (d3 < 140) y += Math.exp(-(d3 * d3) / 2200) * 130;
-
-      if (x === 0) ctx.moveTo(sx + 35 + x, y);
-      else ctx.lineTo(sx + 35 + x, y);
-    }
-    ctx.stroke();
-
-    // Highlight active peak
-    const activeX = sx + 35 + ((4000 - peak) / 3500) * (sw - 50);
-    ctx.fillStyle = 'rgba(247, 127, 0, 0.85)';
-    ctx.beginPath();
-    ctx.arc(activeX, sy + sh - 55, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#f77f00';
-    ctx.font = 'bold 10px Inter, sans-serif';
-    ctx.fillText(`${peak} cm⁻¹`, activeX, sy + sh - 65);
-  }
-
+  updateStateLabels();
   render();
 }
 

@@ -200,7 +200,7 @@
             <h4 style="font-size: 1.15rem; margin-bottom: 0;">Trojúhelník kompromisů ve výpočetní chemii</h4>
           </div>
           <p style="font-size: 0.92rem;">
-            Vyzkoušejte pravidlo <em>„2 ze 3“</em>. Klikněte nebo táhněte kurzorem v trojúhelníku a zjistěte, jaká výpočetní metoda nejlépe odpovídá zvolenému poměru přesnosti, velikosti a rychlosti.
+            Klikněte nebo táhněte kurzorem v trojúhelníku a zjistěte, jaká výpočetní metoda nejlépe odpovídá zvolenému poměru přesnosti, velikosti a rychlosti.
           </p>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center;">
@@ -388,29 +388,93 @@
           <i>F</i> = −<i>k</i> · (<i>r</i> − <i>r</i><sub>0</sub>)
         </div>
 
-        <!-- Interactive Exercise 3: IR Spectra & Vibrational Modes -->
+        <!-- Interactive Exercise 3: Molecular Dynamics of Water Phases -->
         <div class="interactive-box">
           <div class="interactive-header">
             <span class="interactive-badge">⚡ Interaktivní cvičení 3</span>
-            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Vibrační pohyby molekul a Infračervená (IR) spektroskopie</h4>
+            <h4 style="font-size: 1.15rem; margin-bottom: 0;">Molekulová dynamika vody: Simulace fází (Led, Voda, Pára)</h4>
           </div>
           <p style="font-size: 0.92rem;">
-            Zvolte normální vibrační mód a sledujte animaci kmitání atomů i odpovídající absorpční pík na infračerveném spektru.
+            Změnou <strong>teploty (<i>T</i>)</strong> a <strong>tlaku (<i>p</i>)</strong> ovlivňujete kinetickou energii molekul a síť vodíkových můstků. Sledujte v reálném čase atomární uspořádání krystalického ledu, dynamické kapalné vody a expandující vodní páry.
           </p>
 
+          <!-- Preset State Buttons -->
           <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
-            <button class="btn btn-secondary btn-sm ir-mode-btn active" data-mode="h2o_bend">H₂O: Deformační kmit (1595 cm⁻¹)</button>
-            <button class="btn btn-secondary btn-sm ir-mode-btn" data-mode="h2o_sym">H₂O: Symetrický valenční (3657 cm⁻¹)</button>
-            <button class="btn btn-secondary btn-sm ir-mode-btn" data-mode="h2o_asym">H₂O: Asymetrický valenční (3756 cm⁻¹)</button>
-            <button class="btn btn-secondary btn-sm ir-mode-btn" data-mode="co2_asym">CO₂: Asymetrický kmit (2349 cm⁻¹)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn active" data-temp="-15" data-press="1.0">🧊 Led (−15 °C, 1 atm)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="25" data-press="1.0">💧 Kapalná voda (25 °C, 1 atm)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="130" data-press="1.0">♨️ Vodní pára (130 °C, 1 atm)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="70" data-press="0.33">🏔️ Var na Everestu (70 °C, 0.33 atm)</button>
+            <button class="btn btn-secondary btn-sm water-preset-btn" data-temp="120" data-press="2.0">⚡ Tlakový hrnec (120 °C, 2 atm)</button>
           </div>
 
-          <div style="background: var(--bg-card); padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border-color); font-size: 0.88rem;">
-            <div id="ir-mode-freq" style="font-weight: 700; color: var(--up-blue-light); margin-bottom: 0.25rem;">H₂O: Deformační kmit | Frekvence: 1595 cm⁻¹</div>
-            <div id="ir-mode-desc" style="color: var(--text-muted);">Mění se úhel vazby H-O-H. Atomy vodíku se synchronně přibližují a oddalují od sebe.</div>
+          <!-- Dual Sliders: Temperature & Pressure -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border-color);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label for="water-temp-slider" style="font-size: 0.85rem; font-weight: 700;">🌡️ Teplota (<i>T</i>):</label>
+                <span id="water-temp-val" style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: var(--up-cyan);">−15 °C (258 K)</span>
+              </div>
+              <input type="range" id="water-temp-slider" min="-40" max="200" value="-15" style="width: 100%; accent-color: var(--up-cyan); cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+                <span>−40 °C</span>
+                <span>0 °C (Tání)</span>
+                <span>100 °C (Var)</span>
+                <span>200 °C</span>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label for="water-press-slider" style="font-size: 0.85rem; font-weight: 700;">⏱️ Tlak (<i>p</i>):</label>
+                <span id="water-press-val" style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: #10b981;">1.00 atm (101.3 kPa)</span>
+              </div>
+              <input type="range" id="water-press-slider" min="0.1" max="5.0" step="0.05" value="1.0" style="width: 100%; accent-color: #10b981; cursor: pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">
+                <span>0.1 atm (Vakuum)</span>
+                <span>1.0 atm (Standard)</span>
+                <span>5.0 atm</span>
+              </div>
+            </div>
           </div>
 
-          <canvas id="ir-canvas" class="sim-canvas"></canvas>
+          <!-- Controls Bar -->
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.65rem; margin-bottom: 0.85rem;">
+            <div style="display: flex; gap: 0.5rem;">
+              <button id="water-play-btn" class="btn btn-primary btn-sm">⏸ Pozastavit</button>
+              <button id="water-reset-btn" class="btn btn-secondary btn-sm">🔄 Resetovat polohy</button>
+            </div>
+            <div style="display: flex; gap: 1rem; font-size: 0.82rem; color: var(--text-muted);">
+              <label style="display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--text-main);">
+                <input type="checkbox" id="water-hbonds-toggle" checked style="accent-color: var(--up-cyan); cursor: pointer;">
+                🔗 Vodíkové můstky (H-vazby)
+              </label>
+            </div>
+          </div>
+
+          <!-- Simulation Canvas -->
+          <div style="width: 100%; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-color); background: #060b17; margin-bottom: 1rem; position: relative;">
+            <canvas id="water-md-canvas" width="540" height="340" style="width: 100%; height: 340px; display: block;"></canvas>
+          </div>
+
+          <!-- Live State Info Cards -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.65rem; background: var(--bg-card); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.82rem;">
+            <div>
+              <span style="color: var(--text-subtle);">Skupenství (Fáze):</span><br>
+              <strong id="water-phase-badge" style="color: #38bdf8; font-size: 0.92rem;">🧊 Led (Krystalická mřížka)</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Průměr H-můstků:</span><br>
+              <strong id="water-hbonds-count" style="color: var(--up-cyan); font-family: var(--font-mono);">3.8 / molekulu</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Střední rychlost ⟨v⟩:</span><br>
+              <strong id="water-velocity-val" style="color: #f59e0b; font-family: var(--font-mono);">210 m/s</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-subtle);">Bod varu při p:</span><br>
+              <strong id="water-boil-pt-val" style="color: #10b981; font-family: var(--font-mono);">100.0 °C</strong>
+            </div>
+          </div>
         </div>
       </article>
 
