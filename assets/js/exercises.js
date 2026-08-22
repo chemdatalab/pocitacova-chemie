@@ -1058,17 +1058,31 @@ function initWaterPhaseMDSimulator() {
     const boxLeft = 18;
     const boxRight = width - 145;
     const boxBottom = height - 18;
-    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 14;
+    // Piston descends downwards as pressure increases (compression)
+    const boxTop = 20 + ((p - 0.1) / (5.0 - 0.1)) * 135;
 
     // Assign phases to molecules based on coexistence fractions
     const numIce = Math.round(N * fIce);
     const numGas = Math.round(N * fGas);
     const numLiq = N - numIce - numGas;
 
+    // Calculate liquid pool depth and ice floating height (Ice floats on liquid water)
+    const liquidSurfaceY = numLiq > 0 ? (boxBottom - 8 - (numLiq / N) * 95) : boxBottom;
+    const iceRows = Math.max(1, Math.ceil(numIce / numCols));
+    const targetIceStartY = (numLiq === 0) ? 188 : Math.max(boxTop + 20, liquidSurfaceY - (iceRows - 0.7) * 24);
+
     for (let i = 0; i < N; i++) {
-      if (i < numIce) molecules[i].phase = 'ice';
-      else if (i >= N - numGas) molecules[i].phase = 'gas';
-      else molecules[i].phase = 'liquid';
+      if (i < numIce) {
+        molecules[i].phase = 'ice';
+        // Dynamically adjust ice lattice anchor so ice floats on water surface, or sits on floor when 100% ice
+        const r = Math.floor(i / numCols);
+        const targetLy = targetIceStartY + r * 24;
+        molecules[i].ly = molecules[i].ly * 0.92 + targetLy * 0.08;
+      } else if (i >= N - numGas) {
+        molecules[i].phase = 'gas';
+      } else {
+        molecules[i].phase = 'liquid';
+      }
       molecules[i].hBondCount = 0;
     }
 
@@ -1177,12 +1191,20 @@ function initWaterPhaseMDSimulator() {
         }
       }
 
-      // 2. Phase-Specific Mechanics
+      // 2. Phase-Specific Mechanics & Buoyancy
       if (mi.phase === 'ice') {
-        // Crystalline ice: grounded at bottom, spring force towards hexagonal lattice anchor
-        mi.vy += 0.025; // Solid weight / gravity
+        // Crystalline ice:
+        // - In solid alone: settles at bottom floor under gravity.
+        // - In mixture with liquid: FLOATS on top of liquid water due to buoyancy (rho_ice < rho_water)!
+        if (numLiq > 0 && mi.y > liquidSurfaceY + 6) {
+          // Archimedean upward buoyant lift when submerged in liquid water
+          mi.vy -= 0.075;
+        } else {
+          // Downward gravity
+          mi.vy += 0.035;
+        }
 
-        const iceStiffness = Math.min(0.22, ((-T) + 12) * 0.009);
+        const iceStiffness = Math.min(0.22, ((-T) + 12) * 0.009 + 0.04);
         const ldx = mi.lx - mi.x;
         const ldy = mi.ly - mi.y;
 
@@ -1232,7 +1254,7 @@ function initWaterPhaseMDSimulator() {
       mi.x += mi.vx;
       mi.y += mi.vy;
 
-      // 4. Container Boundary Collisions with Damped Bounce on Floor
+      // 4. Container Boundary Collisions with Damped Bounce on Floor & Moving Piston
       const rBound = O_RADIUS + 4;
       if (mi.x < boxLeft + rBound) { mi.x = boxLeft + rBound; mi.vx = Math.abs(mi.vx) * 0.85; }
       if (mi.x > boxRight - rBound) { mi.x = boxRight - rBound; mi.vx = -Math.abs(mi.vx) * 0.85; }
@@ -1268,20 +1290,38 @@ function initWaterPhaseMDSimulator() {
     const boxLeft = 18;
     const boxRight = width - 145;
     const boxBottom = height - 18;
-    const boxTop = 18 + (1 - Math.min(1, p / 3.5)) * 14;
+    // Piston descends downwards as pressure increases (compression)
+    const boxTop = 20 + ((p - 0.1) / (5.0 - 0.1)) * 135;
 
-    // 1. Draw Simulation Chamber (Walls & Piston)
-    ctx.strokeStyle = '#334155';
+    // 1. Draw Simulation Chamber (Cylinder Walls & Moving Piston)
+    // Container U-shape walls
+    ctx.strokeStyle = '#475569';
     ctx.lineWidth = 3;
-    ctx.strokeRect(boxLeft, boxTop, boxRight - boxLeft, boxBottom - boxTop);
+    ctx.beginPath();
+    ctx.moveTo(boxLeft, 10);
+    ctx.lineTo(boxLeft, boxBottom);
+    ctx.lineTo(boxRight, boxBottom);
+    ctx.lineTo(boxRight, 10);
+    ctx.stroke();
 
-    // Piston top plate (Pressure indicator)
-    ctx.fillStyle = 'rgba(51, 65, 85, 0.85)';
-    ctx.fillRect(boxLeft - 4, boxTop - 8, boxRight - boxLeft + 8, 8);
+    // Piston Head Plate (Moves with boxTop)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(boxLeft + 1, boxTop - 10, boxRight - boxLeft - 2, 10);
+    ctx.strokeStyle = '#00f5d4';
+    ctx.lineWidth = 1.6;
+    ctx.strokeRect(boxLeft + 1, boxTop - 10, boxRight - boxLeft - 2, 10);
+
+    // Piston Rod / Handle pushing down from top
+    const midX = (boxLeft + boxRight) / 2;
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(midX - 5, 2, 10, Math.max(0, boxTop - 12));
+    ctx.fillRect(midX - 25, 2, 50, 6);
+
+    // Pressure Readout above piston plate
     ctx.fillStyle = '#10b981';
     ctx.font = 'bold 9px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`Píst: p = ${p.toFixed(2)} atm`, (boxLeft + boxRight) / 2, boxTop - 12);
+    ctx.fillText(`Píst: p = ${p.toFixed(2)} atm`, midX, Math.max(14, boxTop - 14));
 
     // 2. Draw Hydrogen Bonds (Dashed Cyan Lines from H directly to O: O-H...O)
     if (showHbonds) {
