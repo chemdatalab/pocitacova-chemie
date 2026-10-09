@@ -1803,3 +1803,43 @@ a.chapter-pill:hover {
   border-top: 1px solid var(--border-color);
   padding-top: 1rem;
 }
+/* Vycentrování dvou boxů */
+.pillars-grid {
+  grid-template-columns: repeat(2, minmax(0, 376px));
+  justify-content: center;
+}
+
+/* Na mobilu budou boxy pod sebou */
+@media (max-width: 800px) {
+  .pillars-grid {
+    grid-template-columns: minmax(0, 376px);
+  }
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 380px) repeat(2, minmax(0, 240px));
+  justify-content: center;
+  gap: 48px;
+}
+
+@media (max-width: 900px) {
+  .footer-grid {
+    grid-template-columns: minmax(0, 380px);
+    gap: 32px;
+  }
+}
+.opening-notice {
+  display: inline-block;
+  margin-bottom: 24px;
+  padding: 14px 20px;
+  border: 1px solid #ff0000;
+  border-radius: 12px;
+  background: rgba(0, 159, 227, 0.08);
+  color: var(--text-main, #142033);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.opening-notice strong {
+  color: #005596;
+}
