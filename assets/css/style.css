@@ -1894,3 +1894,11 @@ footer {
   margin: 0;
   transform: none;
 }
+
+.footer {
+  padding-top: 2.5rem;
+}
+
+.footer-logos {
+  margin-bottom: 0.5rem;
+}
