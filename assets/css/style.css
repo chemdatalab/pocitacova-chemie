@@ -1861,3 +1861,36 @@ a.chapter-pill:hover {
 .footer-logo-kraj:hover {
   transform: none;
 }
+footer {
+  background: #fff;
+  color: #002855;
+}
+
+.footer .footer-bottom {
+  width: 100%;
+  box-sizing: border-box;
+  background: #002855;
+  color: #fff;
+  padding: 1.5rem max(1.5rem, calc((100% - 1200px) / 2));
+}
+
+.footer .footer-bottom-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem 2rem;
+  flex-wrap: wrap;
+}
+
+.footer .footer-bottom-inner > div {
+  color: #fff;
+}
+
+.footer-logo-kraj {
+  width: 340px;
+  height: auto;
+  max-width: 100%;
+  display: block;
+  margin: 0;
+  transform: none;
+}
