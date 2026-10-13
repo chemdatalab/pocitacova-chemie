@@ -1903,5 +1903,5 @@ footer {
   margin-bottom: 0.5rem;
 }
 .footer-grid > div:first-child {
-  transform: translateY(-30px);
+  transform: translateY(-50px);
 }
