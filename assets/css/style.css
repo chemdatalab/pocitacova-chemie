@@ -1902,3 +1902,6 @@ footer {
 .footer-logos {
   margin-bottom: 0.5rem;
 }
+.footer-grid > div:first-child {
+  transform: translateY(-30px);
+}
