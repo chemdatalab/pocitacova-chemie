@@ -1852,11 +1852,10 @@ a.chapter-pill:hover {
   color: #005596;
 }
 .footer-logo-kraj {
-  height: 80px;
+  height: 100px;
   width: auto;
   max-height: none;
   flex-shrink: 0;
-  margin: 12px 24px 24px 12px;
 }
 
 .footer-logo-kraj:hover {
