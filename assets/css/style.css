@@ -1298,25 +1298,25 @@ a.chapter-pill:hover {
 
 /* Footer */
 .footer {
-  background: var(--up-blue-dark);
-  color: #cbd5e1;
+  background: #fff;
+  color: #002855;
   padding: 4.5rem 0 2rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid #e2e8f0;
 }
 
 .footer h4 {
-  color: #ffffff;
+  color: #002855;
   font-size: 1.15rem;
   margin-bottom: 1.25rem;
 }
 
 .footer p, .footer a {
-  color: #94a3b8;
+  color: #004990;
   font-size: 0.9rem;
 }
 
 .footer a:hover {
-  color: var(--up-cyan);
+  color: #0066a4;
 }
 
 .footer-grid {
@@ -1327,13 +1327,21 @@ a.chapter-pill:hover {
 }
 
 .footer-bottom {
+  background: #002855
+  color: #fff 
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-bottom-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
 }
+
+.footer .footer-bottom a,
+.footer .footer-bottom p { color: #fff; }
 
 /* ==========================================================================
    INTERACTIVE EXERCISES & TEXTBOOK STYLES
