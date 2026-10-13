@@ -1843,3 +1843,14 @@ a.chapter-pill:hover {
 .opening-notice strong {
   color: #005596;
 }
+.footer-logo-kraj {
+  height: 80px;
+  width: auto;
+  max-height: none;
+  flex-shrink: 0;
+  margin: 12px 24px 24px 12px;
+}
+
+.footer-logo-kraj:hover {
+  transform: none;
+}
