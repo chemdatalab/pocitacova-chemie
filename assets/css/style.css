@@ -1896,12 +1896,12 @@ footer {
 }
 
 .footer {
-  padding-top: 1rem;
+  padding-top: 2.5rem;
 }
 
 .footer-logos {
   margin-bottom: 0.5rem;
 }
 .footer-grid > div:first-child {
-  transform: translateY(-50px);
+  transform: translateY(-30px);
 }
