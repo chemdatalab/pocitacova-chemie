@@ -23,3 +23,7 @@ scratch/
 
 # Local raw source documents (not for public repo)
 sources/
+
+# Large unused multimedia
+assets/video/media4.avi
+assets/video/media1.mp4
